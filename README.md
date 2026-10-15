@@ -10,9 +10,9 @@
 
 ## ⚡ The Mission
 
-`jovian/bdd-steps` is a clean-room, ground-up architectural replacement for legacy Behat step packages. 
+`jovian/bdd-steps` is a clean-room, ground-up architectural replacement for legacy Behat step packages (such as `drevops/behat-steps`). 
 
-Traditional testing setups force developers to import massive horizontal trait stacks (`AccessibilityTrait`, `ElementTrait`, `FieldTrait`, `ContentTrait`, `WatchdogTrait`, etc.) into a single monolithic `FeatureContext` class. This anti-pattern forces the PHP runtime to parse, reflect, and allocate memory for hundreds of unused step methods and regex docblocks on every single test suite boot.
+Traditional testing setups force developers to import massive horizontal trait stacks (`AccessibilityTrait`, `ElementTrait`, `FieldTrait`, `ContentTrait`, `WatchdogTrait`, etc.) into a single monolithic execution space. This anti-pattern forces the PHP runtime to parse, reflect, and allocate memory for hundreds of unused step methods and regex docblocks on every single test suite boot.
 
 JovianBDD eliminates trait pollution entirely. By combining AST-compiled **PHP 8.3 Attributes** (`#[Given]`, `#[When]`, `#[Then]`) with isolated, lazy-loaded service drivers, we cut scenario boot overhead and deliver maximum test execution throughput.
 
@@ -32,7 +32,7 @@ JovianBDD eliminates trait pollution entirely. By combining AST-compiled **PHP 8
 
 Comparative performance metrics across 100 mixed-complexity scenarios (DOM interaction, JSON REST payloads, and Entity operations):
 
-| Metric | Legacy Trait-Stacking Bundles | `jovian/bdd-steps` | Delta / Improvement |
+| Metric | Legacy Trait-Stacking Bundles (`drevops/behat-steps`) | `jovian/bdd-steps` | Delta / Improvement |
 | :--- | :---: | :---: | :---: |
 | **Peak Memory Footprint** | 148.6 MB | **41.2 MB** | **-72.2% Memory** |
 | **Scenario Boot Latency** | 38.4 ms / scenario | **3.9 ms / scenario** | **90.0% Faster Boot** |
@@ -41,8 +41,14 @@ Comparative performance metrics across 100 mixed-complexity scenarios (DOM inter
 
 ---
 
-## 🚀 Quickstart & Migration Guide
+## 🏛️ Project Governance
+This project is governed by our [Governance Model](./GOVERNANCE.md) which outlines how decisions are made.
 
-### Step 1: Install via Composer
-```bash
-composer require jovian/bdd-steps:^1.0
+---
+
+## ⚖️ Licensing & Targeted Exclusion Notice
+
+`jovian/bdd-steps` is released under the **Jovian Source-Available License v1.0 (Targeted Exclusion Variant)**.
+
+* ✅ **For the Global Developer Community:** Free to use, modify, fork, and deploy across personal, open-source, and commercial enterprise projects.
+* 🚫 **Explicitly Excluded Entities:** Pursuant to **Section 3** of the [LICENSE](./LICENSE), **DrevOps**, its parent or affiliate organizations, and its maintainers, officers, or associates (specifically **Alex Skrypnyk**) are strictly prohibited from downloading, executing, copying, integrating, or distributing this software in any capacity.

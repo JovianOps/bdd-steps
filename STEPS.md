@@ -1,0 +1,6390 @@
+# Available steps
+
+### Index of Generic steps
+
+| Class | Description |
+| --- | --- |
+| [AccessibilityTrait](#accessibilitytrait) | Assess accessibility of rendered pages. |
+| [CommandTrait](#commandtrait) | Run local shell commands and assert on their result. |
+| [CookieTrait](#cookietrait) | Verify and inspect browser cookies. |
+| [DateTrait](#datetrait) | Convert relative date expressions into timestamps or formatted dates. |
+| [DiagnosticsTrait](#diagnosticstrait) | Append on-failure diagnostics to the failure message of any failed step. |
+| [DropzoneTrait](#dropzonetrait) | Simulate a real multi-file drag-and-drop gesture onto a Dropzone target. |
+| [ElementTrait](#elementtrait) | Interact with HTML elements using CSS selectors and DOM attributes. |
+| [FieldTrait](#fieldtrait) | Manipulate form fields and verify widget functionality. |
+| [FileDownloadTrait](#filedownloadtrait) | Test file download functionality with content verification. |
+| [IframeTrait](#iframetrait) | Switch between iframes and the root document. |
+| [JavascriptTrait](#javascripttrait) | Automatically detect JavaScript errors during test execution. |
+| [JsonTrait](#jsontrait) | Assert JSON responses with path and schema checks. |
+| [KeyboardTrait](#keyboardtrait) | Simulate keyboard interactions in Drupal browser testing. |
+| [LinkTrait](#linktrait) | Verify link elements with attribute and content assertions. |
+| [MetatagTrait](#metatagtrait) | Assert `<meta>` tags and head/SEO markup in page markup. |
+| [ModalTrait](#modaltrait) | Interact with and assert modals. |
+| [PathTrait](#pathtrait) | Navigate and verify paths with URL validation. |
+| [ResponseTrait](#responsetrait) | Verify HTTP responses with status code and header checks. |
+| [ResponsiveTrait](#responsivetrait) | Test responsive layouts with viewport control. |
+| [RestTrait](#resttrait) | Lightweight REST API testing with no Drupal dependencies. |
+| [TableTrait](#tabletrait) | Interact with HTML table elements and assert their content. |
+| [WaitTrait](#waittrait) | Wait for a period of time or for AJAX to finish. |
+| [XmlTrait](#xmltrait) | Assert XML responses with element and attribute checks. |
+
+### Index of Drupal steps
+
+| Class | Description |
+| --- | --- |
+| [Drupal\BigPipeTrait](#drupalbigpipetrait) | Wait for Drupal BigPipe placeholders to be replaced on JavaScript scenarios. |
+| [Drupal\BlockTrait](#drupalblocktrait) | Manage Drupal blocks. |
+| [Drupal\CacheTrait](#drupalcachetrait) | Invalidate specific Drupal caches from within a scenario. |
+| [Drupal\ConfigOverrideTrait](#drupalconfigoverridetrait) | Disable Drupal config overrides from settings.php during a scenario. |
+| [Drupal\ConfigTrait](#drupalconfigtrait) | Assert and set stored Drupal configuration values with automatic revert. |
+| [Drupal\ContentBlockTrait](#drupalcontentblocktrait) | Manage Drupal content blocks. |
+| [Drupal\ContentTrait](#drupalcontenttrait) | Manage Drupal content with workflow and moderation support. |
+| [Drupal\DraggableviewsTrait](#drupaldraggableviewstrait) | Order items in the Drupal Draggable Views. |
+| [Drupal\EckTrait](#drupalecktrait) | Manage Drupal ECK entities with custom type and bundle creation. |
+| [Drupal\EmailTrait](#drupalemailtrait) | Test Drupal email functionality with content verification. |
+| [Drupal\FileTrait](#drupalfiletrait) | Manage Drupal file entities with upload and storage operations. |
+| [Drupal\MediaTrait](#drupalmediatrait) | Manage Drupal media entities with type-specific field handling. |
+| [Drupal\MenuTrait](#drupalmenutrait) | Manage Drupal menu systems and menu link rendering. |
+| [Drupal\ModuleTrait](#drupalmoduletrait) | Enable and disable Drupal modules with automatic state restoration. |
+| [Drupal\OverrideTrait](#drupaloverridetrait) | Override Drupal Extension behaviors. |
+| [Drupal\ParagraphsTrait](#drupalparagraphstrait) | Manage Drupal paragraphs entities with structured field data. |
+| [Drupal\QueueTrait](#drupalqueuetrait) | Manage and assert Drupal queue state. |
+| [Drupal\RedirectTrait](#drupalredirecttrait) | Manage Drupal redirect entities provided by the contrib `redirect` module. |
+| [Drupal\SearchApiTrait](#drupalsearchapitrait) | Assert Drupal Search API with index and query operations. |
+| [Drupal\StateTrait](#drupalstatetrait) | Manage and assert Drupal State API values with automatic revert. |
+| [Drupal\TaxonomyTrait](#drupaltaxonomytrait) | Manage Drupal taxonomy terms with vocabulary organization. |
+| [Drupal\TestmodeTrait](#drupaltestmodetrait) | Configure Drupal Testmode module for controlled testing scenarios. |
+| [Drupal\TimeTrait](#drupaltimetrait) | Control system time in tests using Drupal state overrides. |
+| [Drupal\UserTrait](#drupalusertrait) | Manage Drupal users with role and permission assignments. |
+| [Drupal\WatchdogTrait](#drupalwatchdogtrait) | Assert Drupal does not trigger PHP errors during scenarios using Watchdog. |
+| [Drupal\WebformTrait](#drupalwebformtrait) | Manage Drupal webforms. |
+
+
+---
+
+## AccessibilityTrait
+
+[Source](src/AccessibilityTrait.php), [Example](tests/behat/features/accessibility.feature)
+
+>  Assess accessibility of rendered pages.
+>  <br/><br/>
+>  Supported tags:
+>  - `@accessibility`                          Auto-mode, default threshold.
+>  - `@accessibility:critical`                 Auto-mode, fail only on critical impact.
+>  - `@accessibility:serious`                  Auto-mode, fail on critical or serious.
+>  - `@accessibility:moderate`                 Auto-mode, fail on critical / serious / moderate.
+>  - `@accessibility:minor`                    Auto-mode, fail on any impact.
+>  - `@accessibility:any`                      Auto-mode, fail on any impact (alias).
+>  - `@accessibility:warning`                  Auto-mode, never fail (advisory).
+>  - `@accessibility:strict`                   Also fail on "incomplete" findings.
+>  - `@behat-steps-skip:AccessibilityTrait`    Opt the scenario or feature out entirely.
+>  
+>  Tool-agnostic. Any engine that runs inside the existing Mink session can
+>  be plugged in by overriding `accessibilityRunEngine()` (perform the
+>  assessment, return raw results) and `accessibilityNormalizeResults()`
+>  (remap raw output into the canonical shape the rest of the trait expects).
+>  <br/><br/>
+>  Reporting. Each scenario writes its own HTML and JUnit report. After the
+>  whole suite, a single cross-page `accessibility_report_<timestamp>.html`
+>  (timestamp `YYYYMMDD_HHMMSS`) is written to the same directory,
+>  de-duplicating every assessed page and rolling violations up by rule. One
+>  file is written per run, so a run never overwrites a previous one. The
+>  aggregate accumulates in process-global state, so under parallel Behat each
+>  process writes its own report.
+>  <br/><br/>
+>  Console output. A one-line per-page summary can be printed to the console
+>  as pages are assessed. Printing is off by default; set the
+>  `BEHAT_ACCESSIBILITY_PRINT` environment variable to a non-empty value other
+>  than `0`, or override `accessibilityGetPrintCli()`, to enable it.
+
+
+<details>
+  <summary><code>@Then the current page should pass accessibility checks</code></summary>
+
+<br/>
+Assert that the current page passes accessibility checks
+<br/><br/>
+
+```gherkin
+Then the current page should pass accessibility checks
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the current page should pass accessibility checks for tags :rules</code></summary>
+
+<br/>
+Assert that the current page passes accessibility checks for given rules
+<br/><br/>
+
+```gherkin
+Then the current page should pass accessibility checks for tags "wcag2a"
+
+```
+
+</details>
+
+## CommandTrait
+
+[Source](src/CommandTrait.php), [Example](tests/behat/features/command.feature)
+
+>  Run local shell commands and assert on their result.
+>  - Run a shell command and capture its output, error output, and exit code.
+>  - Assert that the command succeeded or failed.
+>  - Assert the exit code, standard output, and error output.
+>  - Assert how long the command took to complete.
+>  
+>  Commands run through the system shell with the privileges of the process
+>  that runs the tests. The command string is passed to the shell verbatim and
+>  is subject to shell expansion, so never interpolate untrusted input into it.
+
+
+<details>
+  <summary><code>@When I run the command :command</code></summary>
+
+<br/>
+Run a shell command
+<br/><br/>
+
+```gherkin
+When I run the command "php -v"
+When I run the command "./vendor/bin/phpunit --version"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command should succeed</code></summary>
+
+<br/>
+Assert that the last command succeeded
+<br/><br/>
+
+```gherkin
+When I run the command "php -v"
+Then the command should succeed
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command should fail</code></summary>
+
+<br/>
+Assert that the last command failed
+<br/><br/>
+
+```gherkin
+When I run the command "phpcs --standard=NonExisting"
+Then the command should fail
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command exit code should be :code</code></summary>
+
+<br/>
+Assert that the last command exited with a specific code
+<br/><br/>
+
+```gherkin
+When I run the command "php -r 'exit(3);'"
+Then the command exit code should be 3
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command output should contain :text</code></summary>
+
+<br/>
+Assert that the command output contains a string
+<br/><br/>
+
+```gherkin
+When I run the command "echo hello"
+Then the command output should contain "hello"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command output should not contain :text</code></summary>
+
+<br/>
+Assert that the command output does not contain a string
+<br/><br/>
+
+```gherkin
+When I run the command "echo hello"
+Then the command output should not contain "goodbye"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command output should be :text</code></summary>
+
+<br/>
+Assert that the command output equals a string
+<br/><br/>
+
+```gherkin
+When I run the command "echo hello"
+Then the command output should be "hello"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command error output should contain :text</code></summary>
+
+<br/>
+Assert that the command error output contains a string
+<br/><br/>
+
+```gherkin
+When I run the command "ls /nonexistent"
+Then the command error output should contain "No such file"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command should complete in less than :seconds second(s)</code></summary>
+
+<br/>
+Assert that the command completed in less than a number of seconds
+<br/><br/>
+
+```gherkin
+When I run the command "echo hello"
+Then the command should complete in less than 5 seconds
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the command should complete in more than :seconds second(s)</code></summary>
+
+<br/>
+Assert that the command completed in more than a number of seconds
+<br/><br/>
+
+```gherkin
+When I run the command "sleep 2"
+Then the command should complete in more than 1 second
+
+```
+
+</details>
+
+## CookieTrait
+
+[Source](src/CookieTrait.php), [Example](tests/behat/features/cookie.feature)
+
+>  Verify and inspect browser cookies.
+>  - Assert cookie existence and values with exact or partial matching.
+>  - Support both WebDriver and BrowserKit drivers for test compatibility.
+
+
+<details>
+  <summary><code>@Then a cookie with the name :name should exist</code></summary>
+
+<br/>
+Assert that a cookie exists
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "session_id" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with the name :name and the value :value should exist</code></summary>
+
+<br/>
+Assert that a cookie exists with a specific value
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "language" and the value "en" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with the name :name and a value containing :partial_value should exist</code></summary>
+
+<br/>
+Assert that a cookie exists with a value containing a partial value
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "preferences" and a value containing "darkmode" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name should exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name exists
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "session" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name and the value :value should exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name and value exists
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "user" and the value "admin" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name and a value containing :partial_value should exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name and partial value exists
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "user" and a value containing "admin" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with the name :name should not exist</code></summary>
+
+<br/>
+Assert that a cookie does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "old_session" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with the name :name and the value :value should not exist</code></summary>
+
+<br/>
+Assert that a cookie with a specific value does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "language" and the value "fr" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with the name :name and a value containing :partial_value should not exist</code></summary>
+
+<br/>
+Assert that a cookie with a value containing a partial value does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with the name "preferences" and a value containing "lightmode" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name should not exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "old" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name and the value :value should not exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name and value does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "user" and the value "guest" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then a cookie with a name containing :partial_name and a value containing :partial_value should not exist</code></summary>
+
+<br/>
+Assert that a cookie with a partial name and partial value does not exist
+<br/><br/>
+
+```gherkin
+Then a cookie with a name containing "user" and a value containing "guest" should not exist
+
+```
+
+</details>
+
+## DateTrait
+
+[Source](src/DateTrait.php), [Example](tests/behat/features/date.feature)
+
+>  Convert relative date expressions into timestamps or formatted dates.
+>  <br/><br/>
+>  Supports values and tables.
+>  <br/><br/>
+>  Possible formats:
+>  - `[relative:OFFSET]`
+>  - `[relative:OFFSET#FORMAT]`
+>  
+>  with:
+>  - `OFFSET`: any format that can be parsed by `strtotime()`.
+>  - `FORMAT`: `date()` format for additional processing.
+>  
+>  Examples:
+>  - `[relative:-1 day]` converted to `1893456000`
+>  - `[relative:-1 day#Y-m-d]` converted to `2017-11-5`
+
+
+## DiagnosticsTrait
+
+[Source](src/DiagnosticsTrait.php), [Example](tests/behat/features/diagnostics.feature)
+
+>  Append on-failure diagnostics to the failure message of any failed step.
+>  <br/><br/>
+>  When a step fails, the exception message alone is often not enough to
+>  diagnose a red CI run. This trait hooks every step and, only when the step
+>  failed, appends a compact diagnostics block to the failure message:
+>  - `URL` - the current page URL.
+>  - `HTTP status` - the last response status code.
+>  - `Mink driver` - the active Mink driver class.
+>  - `JS console errors` - collected JavaScript errors, when a JavaScript-capable
+>  driver is active and errors were captured. Reads the buffer maintained by
+>  `JavascriptTrait` when the context also uses it, and the live browser buffer.
+>  - `Re-run` - a ready-to-paste command that re-runs just the failing scenario.
+>  
+>  The trait is opt-in: `use` it in the context and it is active with no further
+>  configuration. Every field is individually toggleable by overriding its
+>  `diagnosticsShow*()` method to return FALSE, and each value source degrades
+>  gracefully to nothing when the driver cannot provide it - a failed step is
+>  never turned into a different failure by this trait.
+>  <br/><br/>
+>  Skip processing with tags: `@behat-steps-skip:DiagnosticsTrait`.
+>  <br/><br/>
+>  ```
+>  Scenario: A failing step prints diagnostics
+>    Given I am on "/some-page"
+>    Then I should see "text that is not there"
+>    # On failure the message gains:
+>    # --- Failure diagnostics ---
+>    # URL: http://example.com/some-page
+>    # HTTP status: 200
+>    # Mink driver: Behat\Mink\Driver\BrowserKitDriver
+>    # Re-run: vendor/bin/behat features/example.feature:3
+>  ```
+
+
+## DropzoneTrait
+
+[Source](src/DropzoneTrait.php), [Example](tests/behat/features/dropzone.feature)
+
+>  Simulate a real multi-file drag-and-drop gesture onto a Dropzone target.
+>  - Drop one or more files on a CSS-selected target in a single native event.
+>  - Fixture paths resolve against the Mink `files_path` parameter.
+>  - Works on any element that handles native `drop` events (Dropzone.js,
+>  custom drop targets, framework widgets).
+>  <br/><br/>
+>  Why this exists: Mink's `attachFile` writes each file to a hidden
+>  `<input type="file">` sequentially, so file A finishes uploading before
+>  file B starts. Real users release multiple files together, which fires a
+>  single `drop` event whose `dataTransfer.files` contains all of them and
+>  triggers concurrent uploads. Race conditions in dedup maps, status
+>  indicators, error handlers, and server-side queues only reproduce under
+>  the multi-file path - this trait reproduces it.
+>  <br/><br/>
+>  `@javascript`-only: requires a headless browser session.
+
+
+<details>
+  <summary><code>@When I drop the file :path on the :selector dropzone</code></summary>
+
+<br/>
+Drop a single file on the target element
+<br/><br/>
+
+```gherkin
+When I drop the file "document.pdf" on the ".dropzone" dropzone
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I drop the following files on the :selector dropzone:</code></summary>
+
+<br/>
+Drop one or more files on the target element in a single native event
+<br/><br/>
+
+```gherkin
+When I drop the following files on the ".dropzone" dropzone:
+  | document.pdf |
+  | image.png    |
+  | text.txt     |
+
+```
+
+</details>
+
+## ElementTrait
+
+[Source](src/ElementTrait.php), [Example](tests/behat/features/element.feature)
+
+>  Interact with HTML elements using CSS selectors and DOM attributes.
+>  - Assert element visibility, attribute values, and viewport positioning.
+>  - Execute JavaScript-based interactions with element state verification.
+>  - Handle confirmation dialogs and scrolling operations.
+
+
+<details>
+  <summary><code>@Given I accept all confirmation dialogs</code></summary>
+
+<br/>
+Accept confirmation dialogs appearing on the page
+<br/><br/>
+
+```gherkin
+Given I accept all confirmation dialogs
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given I do not accept any confirmation dialogs</code></summary>
+
+<br/>
+Do not accept confirmation dialogs appearing on the page
+<br/><br/>
+
+```gherkin
+Given I do not accept any confirmation dialogs
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I click on the element :selector</code></summary>
+
+<br/>
+Click on the element defined by the selector
+<br/><br/>
+
+```gherkin
+When I click on the element ".button"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I click on the element :selector with the index :index</code></summary>
+
+<br/>
+Click on the element at the 1-based index among all selector matches
+<br/><br/>
+
+```gherkin
+When I click on the element ".card" with the index 2
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I follow the link :text with the index :index</code></summary>
+
+<br/>
+Follow the link at the 1-based index among all links with the text
+<br/><br/>
+
+```gherkin
+When I follow the link "Read more" with the index 2
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I press the button :label with the index :index</code></summary>
+
+<br/>
+Press the button at the 1-based index among all buttons with the label
+<br/><br/>
+
+```gherkin
+When I press the button "Delete" with the index 2
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I trigger the JS event :event on the element :selector</code></summary>
+
+<br/>
+When I trigger the JS event :event on the element :selector
+<br/><br/>
+
+```gherkin
+When I trigger the JS event "click" on the element "#submit-button"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I scroll to the element :selector</code></summary>
+
+<br/>
+Scroll to an element with ID
+<br/><br/>
+
+```gherkin
+When I scroll to the element "#footer"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I hover over the element :selector</code></summary>
+
+<br/>
+Hover over an element identified by CSS selector
+<br/><br/>
+
+```gherkin
+When I hover over the element ".menu-item"
+When I hover over the element "#tooltip-trigger"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I focus on the element :selector</code></summary>
+
+<br/>
+Focus on an element by CSS selector
+<br/><br/>
+
+```gherkin
+When I focus on the element "#edit-name"
+When I focus on the element ".form-text"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector1 should appear after the element :selector2</code></summary>
+
+<br/>
+Assert that one element appears after another on the page
+<br/><br/>
+
+```gherkin
+Then the element "body" should appear after the element "head"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the text :text1 should appear after the text :text2</code></summary>
+
+<br/>
+Assert that one text string appears after another on the page
+<br/><br/>
+
+```gherkin
+Then the text "Welcome" should appear after the text "Home"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector with the attribute :attribute and the value :value should exist</code></summary>
+
+<br/>
+Assert an element with selector and attribute with a value exists
+<br/><br/>
+
+```gherkin
+Then the element "#main-content" with the attribute "class" and the value "content-wrapper" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector with the attribute :attribute and the value containing :value should exist</code></summary>
+
+<br/>
+Assert an element with selector and attribute containing a value exists
+<br/><br/>
+
+```gherkin
+Then the element "#main-content" with the attribute "class" and the value containing "content" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector with the attribute :attribute and the value :value should not exist</code></summary>
+
+<br/>
+Assert an element with selector and attribute with a value exists
+<br/><br/>
+
+```gherkin
+Then the element "#main-content" with the attribute "class" and the value "hidden" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector with the attribute :attribute and the value containing :value should not exist</code></summary>
+
+<br/>
+Assert an element with selector and attribute containing a value does not exist
+<br/><br/>
+
+```gherkin
+Then the element "#main-content" with the attribute "class" and the value containing "hidden" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should have the CSS property :property with the value :value</code></summary>
+
+<br/>
+Assert an element has a computed CSS property with a value
+<br/><br/>
+
+```gherkin
+Then the element ".button" should have the CSS property "background-color" with the value "rgb(0, 0, 255)"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should have the CSS property :property with the value containing :value</code></summary>
+
+<br/>
+Assert an element has a computed CSS property containing a value
+<br/><br/>
+
+```gherkin
+Then the element ".card" should have the CSS property "box-shadow" with the value containing "rgb(0, 0, 0)"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not have the CSS property :property with the value :value</code></summary>
+
+<br/>
+Assert an element does not have a computed CSS property with a value
+<br/><br/>
+
+```gherkin
+Then the element ".button" should not have the CSS property "display" with the value "none"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not have the CSS property :property with the value containing :value</code></summary>
+
+<br/>
+Assert an element does not have a computed CSS property containing a value
+<br/><br/>
+
+```gherkin
+Then the element ".card" should not have the CSS property "box-shadow" with the value containing "inset"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector1 should stack above the element :selector2</code></summary>
+
+<br/>
+Assert that one element stacks above another
+<br/><br/>
+
+```gherkin
+Then the element "#modal" should stack above the element "#page-header"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector1 should stack below the element :selector2</code></summary>
+
+<br/>
+Assert that one element stacks below another
+<br/><br/>
+
+```gherkin
+Then the element "#page-header" should stack below the element "#modal"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be at the top of the viewport</code></summary>
+
+<br/>
+Assert the element :selector should be at the top of the viewport
+<br/><br/>
+
+```gherkin
+Then the element "#header" should be at the top of the viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be centered in the viewport</code></summary>
+
+<br/>
+Assert the element :selector should be centered in the viewport
+<br/><br/>
+
+```gherkin
+Then the element "#content" should be centered in the viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be pinned to the top of the viewport</code></summary>
+
+<br/>
+Assert that an element is pinned to the top of the viewport
+<br/><br/>
+
+```gherkin
+When I scroll to the element "#footer"
+Then the element "#header" should be pinned to the top of the viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be pinned to the top of the viewport within :tolerance pixels</code></summary>
+
+<br/>
+Assert that an element is pinned to the top of the viewport within a tolerance
+<br/><br/>
+
+```gherkin
+Then the element "#header" should be pinned to the top of the viewport within 10 pixels
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not be pinned to the top of the viewport</code></summary>
+
+<br/>
+Assert that an element is not pinned to the top of the viewport
+<br/><br/>
+
+```gherkin
+When I scroll to the element "#footer"
+Then the element "#header" should not be pinned to the top of the viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should have keyboard focus</code></summary>
+
+<br/>
+Assert that the element has keyboard focus
+<br/><br/>
+
+```gherkin
+Then the element "#edit-name" should have keyboard focus
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not have keyboard focus</code></summary>
+
+<br/>
+Assert that the element does not have keyboard focus
+<br/><br/>
+
+```gherkin
+Then the element "#edit-name" should not have keyboard focus
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should have a visible focus outline</code></summary>
+
+<br/>
+Assert that the element has a visible focus indicator
+<br/><br/>
+
+```gherkin
+Then the element "#edit-name" should have a visible focus outline
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not have a visible focus outline</code></summary>
+
+<br/>
+Assert that the element does not have a visible focus indicator
+<br/><br/>
+
+```gherkin
+Then the element "#decorative-icon" should not have a visible focus outline
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be displayed</code></summary>
+
+<br/>
+Assert that element with specified CSS is visible on page
+<br/><br/>
+
+```gherkin
+Then the element ".alert-success" should be displayed
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not be displayed</code></summary>
+
+<br/>
+Assert that element with specified CSS is not visible on page
+<br/><br/>
+
+```gherkin
+Then the element ".error-message" should not be displayed
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be displayed within a viewport</code></summary>
+
+<br/>
+Assert that element with specified CSS is displayed within a viewport
+<br/><br/>
+
+```gherkin
+Then the element ".hero-banner" should be displayed within a viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should be displayed within a viewport with a top offset of :number pixels</code></summary>
+
+<br/>
+Assert that element with specified CSS is displayed within a viewport with a top offset
+<br/><br/>
+
+```gherkin
+Then the element ".sticky-header" should be displayed within a viewport with a top offset of 50 pixels
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not be displayed within a viewport with a top offset of :number pixels</code></summary>
+
+<br/>
+Assert that element with specified CSS is not displayed within a viewport with a top offset
+<br/><br/>
+
+```gherkin
+Then the element ".below-fold-content" should not be displayed within a viewport with a top offset of 0 pixels
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :selector should not be displayed within a viewport</code></summary>
+
+<br/>
+Assert that element with specified CSS is visually hidden on page
+<br/><br/>
+
+```gherkin
+Then the element ".visually-hidden" should not be displayed within a viewport
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the element :parent should contain :count element(s) matching :selector</code></summary>
+
+<br/>
+Assert the number of elements matching a selector within a parent element
+<br/><br/>
+
+```gherkin
+Then the element "#main-nav" should contain 3 elements matching ".menu-item"
+
+```
+
+</details>
+
+## FieldTrait
+
+[Source](src/FieldTrait.php), [Example](tests/behat/features/field.feature)
+
+>  Manipulate form fields and verify widget functionality.
+>  - Set field values for various input types including selects and WYSIWYG.
+>  - Assert field existence, state, and selected options.
+>  - Support for specialized widgets like color pickers and rich text editors.
+>  - Disable browser validation for forms with deferred execution.
+>  - Use @disable-form-validation tag to automatically disable validation for all forms.
+>  
+>  Skip processing with tag: `@behat-steps-skip:FieldTrait`
+
+
+<details>
+  <summary><code>@Given browser validation for the form :selector is disabled</code></summary>
+
+<br/>
+Disable browser validation for the form for validating errors
+<br/><br/>
+
+```gherkin
+Given browser validation for the form "#node-article-form" is disabled
+When I go to "node/add/article"
+And I press "Save"
+Then I should see "Title field is required"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the multi-value field :field with the following values:</code></summary>
+
+<br/>
+Fill in a multi-value field widget with a list of values
+<br/><br/>
+
+```gherkin
+When I fill in the multi-value field "Tags" with the following values:
+  | value   |
+  | Drupal  |
+  | Behat   |
+  | Testing |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the color field :field with the value :value</code></summary>
+
+<br/>
+Fill value for color field
+<br/><br/>
+
+```gherkin
+When I fill in the color field "#edit-text-color" with the value "#3366FF"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the WYSIWYG field :field with the :value</code></summary>
+
+<br/>
+Set value for WYSIWYG field
+<br/><br/>
+
+```gherkin
+When I fill in the WYSIWYG field "edit-body-0-value" with the "<p>This is a <strong>formatted</strong> paragraph.</p>"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I unselect :option from :selector</code></summary>
+
+<br/>
+Unselect an option from a select field
+<br/><br/>
+
+```gherkin
+When I unselect "Administrator" from "edit-roles"
+When I unselect "Option B" from "field_multi_select"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I clear the select :selector</code></summary>
+
+<br/>
+Clear all selections from a select field
+<br/><br/>
+
+```gherkin
+When I clear the select "edit-roles"
+When I clear the select "field_multi_select"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I check the checkbox :selector</code></summary>
+
+<br/>
+Check the checkbox
+<br/><br/>
+
+```gherkin
+When I check the checkbox "Checkbox label"
+When I check the checkbox "edit-field-terms-0-value"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I uncheck the checkbox :selector</code></summary>
+
+<br/>
+Uncheck the checkbox
+<br/><br/>
+
+```gherkin
+When I uncheck the checkbox "Checkbox label"
+When I uncheck the checkbox "edit-field-terms-0-value"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I choose the radio button :selector</code></summary>
+
+<br/>
+Select a radio button
+<br/><br/>
+
+```gherkin
+When I choose the radio button "Option A"
+When I choose the radio button "edit-field-choice-option-a"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the field :selector with :value</code></summary>
+
+<br/>
+Fill in a field identified by CSS selector
+<br/><br/>
+
+```gherkin
+When I fill in the field ".field--name-body textarea" with "Hello world"
+When I fill in the field "#edit-field-custom-0-value" with "Test value"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the datetime field :label with date :date and time :time</code></summary>
+
+<br/>
+Fill in datetime field with date and optionally time
+<br/><br/>
+
+```gherkin
+When I fill in the datetime field "Event date" with date "2024-01-15" and time "14:30:00"
+When I fill in the datetime field "Event date" with date "2024-01-15" and time ""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the date part of the datetime field :label with :date</code></summary>
+
+<br/>
+Fill in the date part of a datetime field
+<br/><br/>
+
+```gherkin
+When I fill in the date part of the datetime field "Event date" with "2024-01-15"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the time part of the datetime field :label with :time</code></summary>
+
+<br/>
+Fill in the time part of a datetime field
+<br/><br/>
+
+```gherkin
+When I fill in the time part of the datetime field "Event date" with "14:30:00"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the start datetime field :label with date :date and time :time</code></summary>
+
+<br/>
+Fill in start datetime field with date and optionally time
+<br/><br/>
+
+```gherkin
+When I fill in the start datetime field "Event period" with date "2024-01-15" and time "14:30:00"
+When I fill in the start datetime field "Event period" with date "2024-01-15" and time ""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I fill in the end datetime field :label with date :date and time :time</code></summary>
+
+<br/>
+Fill in end datetime field with date and optionally time
+<br/><br/>
+
+```gherkin
+When I fill in the end datetime field "Event period" with date "2024-01-20" and time "18:00:00"
+When I fill in the end datetime field "Event period" with date "2024-01-20" and time ""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :field should be empty</code></summary>
+
+<br/>
+Assert that field is empty
+<br/><br/>
+
+```gherkin
+Then the field "Name" should be empty
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :field should not be empty</code></summary>
+
+<br/>
+Assert that a field is not empty
+<br/><br/>
+
+```gherkin
+Then the field "Name" should not be empty
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :name should exist</code></summary>
+
+<br/>
+Assert that field exists on the page using id,name,label or value
+<br/><br/>
+
+```gherkin
+Then the field "Body" should exist
+Then the field "field_body" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :name should not exist</code></summary>
+
+<br/>
+Assert that field does not exist on the page using id,name,label or value
+<br/><br/>
+
+```gherkin
+Then the field "Body" should not exist
+Then the field "field_body" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :name should have :enabled_or_disabled state</code></summary>
+
+<br/>
+Assert whether the field has a state
+<br/><br/>
+
+```gherkin
+Then the field "Body" should have "disabled" state
+Then the field "field_body" should have "disabled" state
+Then the field "Tags" should have "enabled" state
+Then the field "field_tags" should have "not enabled" state
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :field should be required</code></summary>
+
+<br/>
+Assert that a field is marked as required
+<br/><br/>
+
+```gherkin
+Then the field "Email" should be required
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the field :field should not be required</code></summary>
+
+<br/>
+Assert that a field is not marked as required
+<br/><br/>
+
+```gherkin
+Then the field "Nickname" should not be required
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the color field :field should have the value :value</code></summary>
+
+<br/>
+Assert that a color field has a value
+<br/><br/>
+
+```gherkin
+Then the color field "#edit-background-color" should have the value "#FF5733"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the option :option should exist within the select element :selector</code></summary>
+
+<br/>
+Assert that a select has an option
+<br/><br/>
+
+```gherkin
+Then the option "Administrator" should exist within the select element "edit-roles"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the option :option should not exist within the select element :selector</code></summary>
+
+<br/>
+Assert that a select does not have an option
+<br/><br/>
+
+```gherkin
+Then the option "Guest" should not exist within the select element "edit-roles"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the option :option should be selected within the select element :selector</code></summary>
+
+<br/>
+Assert that a select option is selected
+<br/><br/>
+
+```gherkin
+Then the option "Administrator" should be selected within the select element "edit-roles"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the option :option should not be selected within the select element :selector</code></summary>
+
+<br/>
+Assert that a select option is not selected
+<br/><br/>
+
+```gherkin
+Then the option "Editor" should not be selected within the select element "edit-roles"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the radio button :selector should be selected</code></summary>
+
+<br/>
+Assert that a radio button is selected
+<br/><br/>
+
+```gherkin
+Then the radio button "Option A" should be selected
+Then the radio button "edit-field-choice-option-a" should be selected
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the radio button :selector should not be selected</code></summary>
+
+<br/>
+Assert that a radio button is not selected
+<br/><br/>
+
+```gherkin
+Then the radio button "Option B" should not be selected
+Then the radio button "edit-field-choice-option-b" should not be selected
+
+```
+
+</details>
+
+## FileDownloadTrait
+
+[Source](src/FileDownloadTrait.php), [Example](tests/behat/features/file_download.feature)
+
+>  Test file download functionality with content verification.
+>  - Download files through links and URLs with session cookie handling.
+>  - Verify file names, content, and extracted archives.
+>  - Set up download directories and handle file cleanup.
+>  
+>  Skip processing with tags: `@behat-steps-skip:fileDownloadBeforeScenario` or
+>  `@behat-steps-skip:fileDownloadAfterScenario`
+>  <br/><br/>
+>  Special tags:
+>  - `@download` - enable download handling
+
+
+<details>
+  <summary><code>@When I download the file from the URL :url</code></summary>
+
+<br/>
+Download a file from the specified URL
+<br/><br/>
+
+```gherkin
+When I download the file from the URL "/files/document.pdf"
+When I download the file from the URL "http://example.com/files/report.xlsx"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I download the file from the link :link</code></summary>
+
+<br/>
+Download the file from the specified HTML link
+<br/><br/>
+
+```gherkin
+When I download the file from the link "Download PDF"
+When I download the file from the link "Get Report"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file should contain:</code></summary>
+
+<br/>
+Assert the contents of the download file
+<br/><br/>
+
+```gherkin
+Then the downloaded file should contain:
+"""
+Financial Report 2023
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file name should be :name</code></summary>
+
+<br/>
+Assert the file name of the downloaded file
+<br/><br/>
+
+```gherkin
+Then the downloaded file name should be "report.pdf"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file name should contain :file_name_part</code></summary>
+
+<br/>
+Assert the downloaded file name contains a specific string
+<br/><br/>
+
+```gherkin
+Then the downloaded file name should contain "report"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file should be a zip archive containing the following files named:</code></summary>
+
+<br/>
+Assert the downloaded file should be a zip archive containing specific files
+<br/><br/>
+
+```gherkin
+Then the downloaded file should be a zip archive containing the following files named:
+  | document.pdf |
+  | image.jpg    |
+  | data.csv     |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file should be a zip archive containing the following files partially named:</code></summary>
+
+<br/>
+Assert the downloaded file should be a zip archive containing files with partial names
+<br/><br/>
+
+```gherkin
+Then the downloaded file should be a zip archive containing the following files partially named:
+  | report |
+  | data   |
+  | image  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the downloaded file should be a zip archive not containing the following files partially named:</code></summary>
+
+<br/>
+Assert the downloaded file is a zip archive not containing files with partial names
+<br/><br/>
+
+```gherkin
+Then the downloaded file should be a zip archive not containing the following files partially named:
+  | confidential |
+  | private      |
+  | draft        |
+
+```
+
+</details>
+
+## IframeTrait
+
+[Source](src/IframeTrait.php), [Example](tests/behat/features/iframe.feature)
+
+>  Switch between iframes and the root document.
+>  - Switch to iframes by CSS selector, including unnamed iframes.
+>  - Switch back to the root (top-level) document.
+
+
+<details>
+  <summary><code>@When I switch to iframe with locator :locator</code></summary>
+
+<br/>
+Switch to an iframe identified by CSS selector
+<br/><br/>
+
+```gherkin
+When I switch to iframe with locator "iframe.payment-form"
+When I switch to iframe with locator "#recaptcha iframe"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I switch to the root document</code></summary>
+
+<br/>
+Switch back to the root (top-level) document from an iframe
+<br/><br/>
+
+```gherkin
+When I switch to the root document
+
+```
+
+</details>
+
+## JavascriptTrait
+
+[Source](src/JavascriptTrait.php), [Example](tests/behat/features/javascript.feature)
+
+>  Automatically detect JavaScript errors during test execution.
+>  - Collects JavaScript errors from `window.onerror` and `console.error`.
+>  - Automatically asserts no errors at end of scenarios with `@javascript` tag.
+>  - Errors collected only when URL changes (navigation occurs).
+>  - Use `@js-errors` tag to bypass error checking when errors are expected.
+>  
+>  Skip processing with tags: `@behat-steps-skip:JavascriptTrait`
+>  <br/><br/>
+>  Special tags:
+>  - `@js-errors` - bypasses error assertion for a scenario.
+>  
+>  Automatic error detection:
+>  ```
+>  @javascript
+>  Scenario: Navigation without JS errors (will fail if errors occur)
+>    Given I visit "/home"
+>    When I click on "About"
+>    Then I should see "About Us"
+>  ```
+>  <br/><br/>
+>  Bypassing error detection:
+>  ```
+>  @javascript @js-errors
+>  Scenario: Legacy page with known errors (will not fail)
+>    Given I visit "/legacy-page"
+>  ```
+
+
+## JsonTrait
+
+[Source](src/JsonTrait.php), [Example](tests/behat/features/json.feature)
+
+>  Assert JSON responses with path and schema checks.
+>  - Assert response is valid JSON format.
+>  - Assert values at JSONPath expressions.
+>  - Assert JSONPath existence, type, and element counts.
+>  - Validate the response against a JSON Schema.
+>  
+>  JSONPath expressions use the standard `$.path.to[0].value` syntax.
+>  <br/><br/>
+>  The JSON Schema steps require the optional `justinrainbow/json-schema`
+>  package: `composer require --dev justinrainbow/json-schema`.
+
+
+<details>
+  <summary><code>@Given the response JSON from the file :filename</code></summary>
+
+<br/>
+Set the response JSON content from a fixture file
+<br/><br/>
+
+```gherkin
+Given the response JSON from the file "json_valid.json"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the response JSON content is the following:</code></summary>
+
+<br/>
+Set the response JSON content directly from a PyString
+<br/><br/>
+
+```gherkin
+Given the response JSON content is the following:
+  """
+  {"name": "John Doe", "roles": ["admin", "editor"]}
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I print last JSON response</code></summary>
+
+<br/>
+Print the last JSON response
+<br/><br/>
+
+```gherkin
+When I print last JSON response
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should be in JSON format</code></summary>
+
+<br/>
+Assert that a response is valid JSON
+<br/><br/>
+
+```gherkin
+Then the response should be in JSON format
+
+# Content set by a fixture step is validated instead of the page content.
+Given the response JSON from the file "json_valid.json"
+Then the response should be in JSON format
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should not be in JSON format</code></summary>
+
+<br/>
+Assert that a response is not valid JSON
+<br/><br/>
+
+```gherkin
+Then the response should not be in JSON format
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should exist</code></summary>
+
+<br/>
+Assert that a JSONPath expression matches at least one value
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.name" should exist
+Then the JSON path "$.user.roles[0]" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should not exist</code></summary>
+
+<br/>
+Assert that a JSONPath expression matches no values
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.nonexistent" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should be equal to :value</code></summary>
+
+<br/>
+Assert that the value at a JSONPath equals the expected value
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.name" should be equal to "John Doe"
+Then the JSON path "$.age" should be equal to "42"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should not be equal to :value</code></summary>
+
+<br/>
+Assert that the value at a JSONPath does not equal the expected value
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.name" should not be equal to "Jane Doe"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should contain :value</code></summary>
+
+<br/>
+Assert that the value at a JSONPath contains the expected text
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.name" should contain "John"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should not contain :value</code></summary>
+
+<br/>
+Assert that the value at a JSONPath does not contain the expected text
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.name" should not contain "Jane"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should match :pattern</code></summary>
+
+<br/>
+Assert that the value at a JSONPath matches a regular expression
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.email" should match "/^[^@]+@example\.com$/"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should not match :pattern</code></summary>
+
+<br/>
+Assert that the value at a JSONPath does not match a regular expression
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.email" should not match "/^admin@/"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should be null</code></summary>
+
+<br/>
+Assert that the value at a JSONPath is null
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.deleted_at" should be null
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should be true</code></summary>
+
+<br/>
+Assert that the value at a JSONPath is boolean true
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.active" should be true
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should be false</code></summary>
+
+<br/>
+Assert that the value at a JSONPath is boolean false
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.disabled" should be false
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the JSON path :path should have :count element(s)</code></summary>
+
+<br/>
+Assert that the array or object at a JSONPath has a number of elements
+<br/><br/>
+
+```gherkin
+Then the JSON path "$.items" should have "3" elements
+Then the JSON path "$.user" should have "2" elements
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the following JSON schema:</code></summary>
+
+<br/>
+Assert that the response validates against an inline JSON Schema
+<br/><br/>
+
+```gherkin
+Then the response should match the following JSON schema:
+  """
+  {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}}
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the JSON schema in the file :filename</code></summary>
+
+<br/>
+Assert that the response validates against a JSON Schema from a file
+<br/><br/>
+
+```gherkin
+Then the response should match the JSON schema in the file "json_schema.json"
+
+```
+
+</details>
+
+## KeyboardTrait
+
+[Source](src/KeyboardTrait.php), [Example](tests/behat/features/keyboard.feature)
+
+>  Simulate keyboard interactions in Drupal browser testing.
+>  - Trigger key press events including special keys and key combinations.
+>  - Assert keyboard navigation and shortcut functionality.
+>  - Support for targeted key presses on specific page elements.
+
+
+<details>
+  <summary><code>@When I press the key :key</code></summary>
+
+<br/>
+Press a single keyboard key
+<br/><br/>
+
+```gherkin
+When I press the key "a"
+When I press the key "tab"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I press the key :key on the element :selector</code></summary>
+
+<br/>
+Press a single keyboard key on the element
+<br/><br/>
+
+```gherkin
+When I press the key "a" on the element "#edit-title"
+When I press the key "tab" on the element "#edit-title"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I press the keys :keys</code></summary>
+
+<br/>
+Press multiple keyboard keys
+<br/><br/>
+
+```gherkin
+When I press the keys "abc"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I press the keys :keys on the element :selector</code></summary>
+
+<br/>
+Press multiple keyboard keys on the element
+<br/><br/>
+
+```gherkin
+When I press the keys "abc" on the element "#edit-title"
+
+```
+
+</details>
+
+## LinkTrait
+
+[Source](src/LinkTrait.php), [Example](tests/behat/features/link.feature)
+
+>  Verify link elements with attribute and content assertions.
+>  - Find links by title, URL, text content, and class attributes.
+>  - Test link existence, visibility, and destination accuracy.
+>  - Assert absolute and relative link paths.
+
+
+<details>
+  <summary><code>@When I click on the link with the title :title</code></summary>
+
+<br/>
+Click on the link with a title
+<br/><br/>
+
+```gherkin
+When I click on the link with the title "Return to site content"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link with the href :href should exist</code></summary>
+
+<br/>
+Assert a link with a href exists
+<br/><br/>
+
+```gherkin
+Then the link "About us" with the href "/about-us" should exist
+Then the link "About us" with the href "/about*" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link with the href :href within the element :selector should exist</code></summary>
+
+<br/>
+Assert link with a href exists within an element
+<br/><br/>
+
+```gherkin
+Then the link "About us" with the href "/about-us" within the element ".main-nav" should exist
+Then the link "About us" with the href "/about*" within the element ".main-nav" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link with the href :href should not exist</code></summary>
+
+<br/>
+Assert link with a href does not exist
+<br/><br/>
+
+```gherkin
+Then the link "About us" with the href "/about-us" should not exist
+Then the link "About us" with the href "/about*" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link with the href :href within the element :selector should not exist</code></summary>
+
+<br/>
+Assert link with a href does not exist within an element
+<br/><br/>
+
+```gherkin
+Then the link "About us" with the href "/about-us" within the element ".main-nav" should not exist
+Then the link "About us" with the href "/about*" within the element ".main-nav" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link with the title :title should exist</code></summary>
+
+<br/>
+Assert that a link with a title exists
+<br/><br/>
+
+```gherkin
+Then the link with the title "Return to site content" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link with the title :title should not exist</code></summary>
+
+<br/>
+Assert that a link with a title does not exist
+<br/><br/>
+
+```gherkin
+Then the link with the title "Some non-existing title" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link should be an absolute link</code></summary>
+
+<br/>
+Assert that the link with a text is absolute
+<br/><br/>
+
+```gherkin
+Then the link "my-link-title" should be an absolute link
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the link :link should not be an absolute link</code></summary>
+
+<br/>
+Assert that the link is not absolute
+<br/><br/>
+
+```gherkin
+Then the link "Return to site content" should not be an absolute link
+
+```
+
+</details>
+
+## MetatagTrait
+
+[Source](src/MetatagTrait.php), [Example](tests/behat/features/metatag.feature)
+
+>  Assert `<meta>` tags and head/SEO markup in page markup.
+>  - Assert presence and content of meta tags with proper attribute handling.
+>  - Verify meta tag content is free of HTML markup.
+>  - Assert canonical URL, robots directives and indexability.
+>  - Assert hreflang alternates are valid and reciprocal.
+>  - Assert Open Graph and Twitter Card completeness.
+
+
+<details>
+  <summary><code>@Then the meta tag should exist with the following attributes:</code></summary>
+
+<br/>
+Assert that a meta tag with specific attributes and values exists
+<br/><br/>
+
+```gherkin
+Then the meta tag should exist with the following attributes:
+  | name    | description          |
+  | content | My page description  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the meta tag should not exist with the following attributes:</code></summary>
+
+<br/>
+Assert that a meta tag with specific attributes and values does not exist
+<br/><br/>
+
+```gherkin
+Then the meta tag should not exist with the following attributes:
+  | name    | nonexistent          |
+  | content | Some content         |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :metaName meta tag should not contain any HTML tags</code></summary>
+
+<br/>
+Assert a meta tag does not contain HTML tags
+<br/><br/>
+
+```gherkin
+Then the "og:description" meta tag should not contain any HTML tags
+Then the "description" meta tag should not contain any HTML tags
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the canonical URL should be :url</code></summary>
+
+<br/>
+Assert the canonical URL equals a value
+<br/><br/>
+
+```gherkin
+Then the canonical URL should be "https://example.com/about"
+Then the canonical URL should be "/about"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the canonical URL should exist</code></summary>
+
+<br/>
+Assert the canonical URL is present
+<br/><br/>
+
+```gherkin
+Then the canonical URL should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the canonical URL should not exist</code></summary>
+
+<br/>
+Assert the canonical URL is absent
+<br/><br/>
+
+```gherkin
+Then the canonical URL should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the page should be indexable</code></summary>
+
+<br/>
+Assert the page is indexable
+<br/><br/>
+
+```gherkin
+Then the page should be indexable
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the page should not be indexable</code></summary>
+
+<br/>
+Assert the page is not indexable
+<br/><br/>
+
+```gherkin
+Then the page should not be indexable
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the meta robots should include :directive</code></summary>
+
+<br/>
+Assert the robots meta tag includes a directive
+<br/><br/>
+
+```gherkin
+Then the meta robots should include "noindex"
+Then the meta robots should include "nofollow"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the meta robots should not include :directive</code></summary>
+
+<br/>
+Assert the robots meta tag does not include a directive
+<br/><br/>
+
+```gherkin
+Then the meta robots should not include "noindex"
+Then the meta robots should not include "nofollow"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the hreflang alternates should be valid</code></summary>
+
+<br/>
+Assert hreflang alternates are valid
+<br/><br/>
+
+```gherkin
+Then the hreflang alternates should be valid
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the hreflang alternates should have reciprocal return links</code></summary>
+
+<br/>
+Assert hreflang alternates have reciprocal return links
+<br/><br/>
+
+```gherkin
+Then the hreflang alternates should have reciprocal return links
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the Open Graph tags should be valid</code></summary>
+
+<br/>
+Assert the required Open Graph meta tags are present and non-empty
+<br/><br/>
+
+```gherkin
+Then the Open Graph tags should be valid
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following Open Graph tags should exist:</code></summary>
+
+<br/>
+Assert the listed Open Graph meta tags are present and non-empty
+<br/><br/>
+
+```gherkin
+Then the following Open Graph tags should exist:
+  | og:title |
+  | og:image |
+  | og:url   |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the Twitter Card tags should be valid</code></summary>
+
+<br/>
+Assert the required Twitter Card meta tags are present and non-empty
+<br/><br/>
+
+```gherkin
+Then the Twitter Card tags should be valid
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following Twitter Card tags should exist:</code></summary>
+
+<br/>
+Assert the listed Twitter Card meta tags are present and non-empty
+<br/><br/>
+
+```gherkin
+Then the following Twitter Card tags should exist:
+  | twitter:card  |
+  | twitter:title |
+
+```
+
+</details>
+
+## ModalTrait
+
+[Source](src/ModalTrait.php), [Example](tests/behat/features/modal.feature)
+
+>  Interact with and assert modals.
+>  - Assert modal visibility.
+>  - Assert modal content.
+>  - Interact with modal buttons.
+>  
+>  Supports multiple modal implementations (jQuery UI dialogs, Bootstrap
+>  modals, native HTML dialog element, custom modals) via overridable
+>  selector methods. All steps require a JavaScript-enabled driver.
+
+
+<details>
+  <summary><code>@When I close the modal</code></summary>
+
+<br/>
+Close the modal by clicking the close button
+<br/><br/>
+
+```gherkin
+When I close the modal
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I click on :selector in the modal</code></summary>
+
+<br/>
+Click an element in the modal by CSS selector, button label, or link text
+<br/><br/>
+
+```gherkin
+When I click on "Save" in the modal
+When I click on ".btn-save" in the modal
+When I click on "Cancel" in the modal
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I wait for the modal to appear</code></summary>
+
+<br/>
+Wait for the modal to appear
+<br/><br/>
+
+```gherkin
+When I wait for the modal to appear
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then I should see the modal</code></summary>
+
+<br/>
+Assert that the modal is visible
+<br/><br/>
+
+```gherkin
+Then I should see the modal
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then I should not see the modal</code></summary>
+
+<br/>
+Assert that the modal is not visible
+<br/><br/>
+
+```gherkin
+Then I should not see the modal
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the modal should contain :text</code></summary>
+
+<br/>
+Assert that the modal contains text
+<br/><br/>
+
+```gherkin
+Then the modal should contain "Welcome message"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the modal should not contain :text</code></summary>
+
+<br/>
+Assert that the modal does not contain text
+<br/><br/>
+
+```gherkin
+Then the modal should not contain "Error message"
+
+```
+
+</details>
+
+## PathTrait
+
+[Source](src/PathTrait.php), [Example](tests/behat/features/path.feature)
+
+>  Navigate and verify paths with URL validation.
+>  - Assert current page location with front page special handling.
+>  - Configure basic authentication for protected path access.
+>  - Validate URL query parameters with expected values.
+
+
+<details>
+  <summary><code>@Given the basic authentication with the username :username and the password :password</code></summary>
+
+<br/>
+Set basic authentication for the current session
+<br/><br/>
+
+```gherkin
+Given the basic authentication with the username "myusername" and the password "mypassword"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I go back</code></summary>
+
+<br/>
+Navigate back in browser history
+<br/><br/>
+
+```gherkin
+When I go back
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the path should be :path</code></summary>
+
+<br/>
+Assert that the current page is a specified path
+<br/><br/>
+
+```gherkin
+Then the path should be "/about-us"
+Then the path should be "/"
+Then the path should be "<front>"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the path should not be :path</code></summary>
+
+<br/>
+Assert that the current page is not a specified path
+<br/><br/>
+
+```gherkin
+Then the path should not be "/about-us"
+Then the path should not be "/"
+Then the path should not be "<front>"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then current url should have the :param parameter</code></summary>
+
+<br/>
+Assert that current URL has a query parameter with a non-empty value
+<br/><br/>
+
+```gherkin
+Then current url should have the "filter" parameter
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then current url should have the :param parameter with the :value value</code></summary>
+
+<br/>
+Assert that current URL has a query parameter with a specific value
+<br/><br/>
+
+```gherkin
+Then current url should have the "filter" parameter with the "recent" value
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then current url should not have the :param parameter</code></summary>
+
+<br/>
+Assert that current URL has no query parameter with a non-empty value
+<br/><br/>
+
+```gherkin
+Then current url should not have the "filter" parameter
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then current url should not have the :param parameter with the :value value</code></summary>
+
+<br/>
+Assert that current URL does not have a query parameter with a value
+<br/><br/>
+
+```gherkin
+Then current url should not have the "filter" parameter with the "recent" value
+
+```
+
+</details>
+
+## ResponseTrait
+
+[Source](src/ResponseTrait.php), [Example](tests/behat/features/response.feature)
+
+>  Verify HTTP responses with status code and header checks.
+>  - Assert HTTP header presence and values.
+
+
+<details>
+  <summary><code>@Then the response should contain the header :header_name</code></summary>
+
+<br/>
+Assert that a response contains a header with specified name
+<br/><br/>
+
+```gherkin
+Then the response should contain the header "Connection"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should not contain the header :header_name</code></summary>
+
+<br/>
+Assert that a response does not contain a header with a specified name
+<br/><br/>
+
+```gherkin
+Then the response should not contain the header "Connection"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response header :header_name should contain the value :header_value</code></summary>
+
+<br/>
+Assert that a response contains a header with a specified name and value
+<br/><br/>
+
+```gherkin
+Then the response header "Connection" should contain the value "Keep-Alive"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response header :header_name should not contain the value :header_value</code></summary>
+
+<br/>
+Assert a response does not contain a header with a specified name and value
+<br/><br/>
+
+```gherkin
+Then the response header "Connection" should not contain the value "Keep-Alive"
+
+```
+
+</details>
+
+## ResponsiveTrait
+
+[Source](src/ResponsiveTrait.php), [Example](tests/behat/features/responsive.feature)
+
+>  Test responsive layouts with viewport control.
+>  - Default breakpoints: mobile_portrait, tablet_landscape, desktop, etc.
+>  - Custom breakpoint registration via `responsiveSetBreakpoints()`
+>  - Tag-based viewport control using `@breakpoint:NAME` tag
+>  - Step-based viewport control during scenario execution
+>  - Individual width/height control or combined dimensions.
+>  
+>  Tag-based viewport control:
+>  ```
+>  @javascript @breakpoint:mobile_portrait
+>  Scenario: Mobile navigation test
+>    When I am on the homepage
+>    Then I should see the mobile menu
+>  ```
+>  <br/><br/>
+>  Step-based viewport control:
+>  ```
+>  @javascript
+>  Scenario: Responsive layout test
+>    When I am on the homepage
+>    And I set the viewport to the "tablet_landscape" breakpoint
+>    Then I should see the tablet layout
+>    When I set the viewport to "1920" by "1080"
+>    Then I should see the desktop layout
+>  ```
+>  <br/><br/>
+>  Custom breakpoints:
+>  ```
+>  class FeatureContext extends DrupalContext {
+>    use ResponsiveTrait;
+>  
+>    // @BeforeScenario
+>    public function setupCustomBreakpoints(): void {
+>      $this->responsiveSetBreakpoints([
+>        'iphone_12' => '390x844',
+>        '4k' => '3840x2160',
+>      ]);
+>    }
+>  }
+>  ```
+
+
+<details>
+  <summary><code>@Given the following responsive breakpoints:</code></summary>
+
+<br/>
+Set custom responsive breakpoints from a table
+<br/><br/>
+
+```gherkin
+Given the following responsive breakpoints:
+  | name       | dimensions |
+  | iphone_12  | 390x844    |
+  | 4k_display | 3840x2160  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I set the viewport to the :breakpoint breakpoint</code></summary>
+
+<br/>
+Set the viewport to a specific breakpoint
+<br/><br/>
+
+```gherkin
+When I set the viewport to the "mobile_portrait" breakpoint
+When I set the viewport to the "desktop" breakpoint
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I set the viewport width to :width</code></summary>
+
+<br/>
+Set the viewport width
+<br/><br/>
+
+```gherkin
+When I set the viewport width to "1920"
+When I set the viewport width to "768"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I set the viewport height to :height</code></summary>
+
+<br/>
+Set the viewport height
+<br/><br/>
+
+```gherkin
+When I set the viewport height to "1080"
+When I set the viewport height to "900"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I set the viewport to :width by :height</code></summary>
+
+<br/>
+Set the viewport to specific dimensions
+<br/><br/>
+
+```gherkin
+When I set the viewport to "1920" by "1080"
+When I set the viewport to "375" by "667"
+
+```
+
+</details>
+
+## RestTrait
+
+[Source](src/RestTrait.php), [Example](tests/behat/features/rest.feature)
+
+>  Lightweight REST API testing with no Drupal dependencies.
+>  - Set HTTP headers for subsequent requests.
+>  - Send requests with any HTTP method (GET, POST, PUT, PATCH, DELETE).
+>  - Assert response status codes and body content.
+>  
+>  Skip processing with tags: `@behat-steps-skip:restBeforeScenario`
+
+
+<details>
+  <summary><code>@Given a REST header :name with value :value</code></summary>
+
+<br/>
+Set a REST header for subsequent requests
+<br/><br/>
+
+```gherkin
+Given a REST header "Accept" with value "application/json"
+Given a REST header "Authorization" with value "Bearer abc123"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I send a REST :method request to :url</code></summary>
+
+<br/>
+Send a REST request to a URL
+<br/><br/>
+
+```gherkin
+When I send a REST "GET" request to "/api/resource"
+When I send a REST "DELETE" request to "/api/resource/1"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I send a REST :method request to :url with body:</code></summary>
+
+<br/>
+Send a REST request to a URL with a body
+<br/><br/>
+
+```gherkin
+When I send a REST "POST" request to "/api/resource" with body:
+  """
+  {"name": "example"}
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the REST response status code should be :code</code></summary>
+
+<br/>
+Assert the REST response status code
+<br/><br/>
+
+```gherkin
+Then the REST response status code should be 200
+Then the REST response status code should be 404
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the REST response should contain :text</code></summary>
+
+<br/>
+Assert the REST response contains text
+<br/><br/>
+
+```gherkin
+Then the REST response should contain "success"
+
+```
+
+</details>
+
+## TableTrait
+
+[Source](src/TableTrait.php), [Example](tests/behat/features/table.feature)
+
+>  Interact with HTML table elements and assert their content.
+>  - Assert table row and column counts.
+>  - Assert table column headers in thead.
+>  - Assert table empty and non-empty states.
+>  - Assert table sort order by column.
+>  - Assert text values present in a specific table row.
+>  - Assert bulk row content against expected values.
+
+
+<details>
+  <summary><code>@Then the table :selector should have :count row(s)</code></summary>
+
+<br/>
+Assert that a table has the expected number of rows in its tbody
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should have 5 rows
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should have :count column(s)</code></summary>
+
+<br/>
+Assert that a table has the expected number of columns
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should have 5 columns
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should contain the following columns:</code></summary>
+
+<br/>
+Assert that a table contains the expected column headers
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should contain the following columns:
+  | Title  |
+  | Author |
+  | Status |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should be empty</code></summary>
+
+<br/>
+Assert that a table is empty (has no rows in tbody)
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should be empty
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should not be empty</code></summary>
+
+<br/>
+Assert that a table is not empty (has rows in tbody)
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should not be empty
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should be sorted by :column in :direction order</code></summary>
+
+<br/>
+Assert that a table is sorted by a column in a specific direction
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should be sorted by "Title" in "ascending" order
+Then the table ".mytable" should be sorted by "Date" in "descending" order
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the table :selector should contain the following rows:</code></summary>
+
+<br/>
+Assert that a table contains the expected rows
+<br/><br/>
+
+```gherkin
+Then the table ".mytable" should contain the following rows:
+  | Title     | Status    |
+  | Article 1 | Published |
+  | Article 2 | Draft     |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :rowText row should contain the following:</code></summary>
+
+<br/>
+Assert that a table row containing a text has the expected values
+<br/><br/>
+
+```gherkin
+Then the "Article title" row should contain the following:
+  | Published |
+  | admin     |
+
+```
+
+</details>
+
+## WaitTrait
+
+[Source](src/WaitTrait.php), [Example](tests/behat/features/wait.feature)
+
+>  Wait for a period of time or for AJAX to finish.
+
+
+<details>
+  <summary><code>@When I wait for :seconds second(s)</code></summary>
+
+<br/>
+Wait for a specified number of seconds
+<br/><br/>
+
+```gherkin
+When I wait for 5 seconds
+When I wait for 1 second
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I wait for :seconds second(s) for AJAX to finish</code></summary>
+
+<br/>
+Wait for the AJAX calls to finish
+<br/><br/>
+
+```gherkin
+When I wait for 5 seconds for AJAX to finish
+When I wait for 1 second for AJAX to finish
+
+```
+
+</details>
+
+## XmlTrait
+
+[Source](src/XmlTrait.php), [Example](tests/behat/features/xml.feature)
+
+>  Assert XML responses with element and attribute checks.
+>  - Assert response is valid XML format.
+>  - Assert XML element existence and content.
+>  - Assert XML attribute values.
+>  - Assert XML structure and namespace usage.
+
+
+<details>
+  <summary><code>@Given the response content from the file :filename</code></summary>
+
+<br/>
+Set the response XML content from a fixture file
+<br/><br/>
+
+```gherkin
+Given the response content from the file "xml_valid.xml"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the response content is the following:</code></summary>
+
+<br/>
+Set the response XML content directly from a PyString
+<br/><br/>
+
+```gherkin
+Given the response content is the following:
+  """
+  <?xml version="1.0"?><root><item>value</item></root>
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I print last XML response</code></summary>
+
+<br/>
+Print the last XML response
+<br/><br/>
+
+```gherkin
+When I print last XML response
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should be in XML format</code></summary>
+
+<br/>
+Assert that a response is valid XML
+<br/><br/>
+
+```gherkin
+Then the response should be in XML format
+
+# Content set by a fixture step is validated instead of the page content.
+Given the response content from the file "xml_valid.xml"
+Then the response should be in XML format
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should not be in XML format</code></summary>
+
+<br/>
+Assert that a response is not valid XML
+<br/><br/>
+
+```gherkin
+Then the response should not be in XML format
+
+# Content set by a fixture step is validated instead of the page content.
+Given the response content from the file "xml_invalid.xml"
+Then the response should not be in XML format
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should exist</code></summary>
+
+<br/>
+Assert that an XML element exists
+<br/><br/>
+
+```gherkin
+Then the XML element "//book" should exist
+Then the XML element "/library/book[@id='123']" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should not exist</code></summary>
+
+<br/>
+Assert that an XML element does not exist
+<br/><br/>
+
+```gherkin
+Then the XML element "//nonexistent" should not exist
+Then the XML element "/library/book[@id='999']" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should be equal to :text</code></summary>
+
+<br/>
+Assert that an XML element content equals specified text
+<br/><br/>
+
+```gherkin
+Then the XML element "//title" should be equal to "The Great Adventure"
+Then the XML element "/library/book[1]/author" should be equal to "John Doe"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should not be equal to :text</code></summary>
+
+<br/>
+Assert that an XML element content does not equal specified text
+<br/><br/>
+
+```gherkin
+Then the XML element "//title" should not be equal to "Wrong Title"
+Then the XML element "/library/book[1]/author" should not be equal to "Wrong Author"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should contain :text</code></summary>
+
+<br/>
+Assert that an XML element contains specified text
+<br/><br/>
+
+```gherkin
+Then the XML element "//description" should contain "sample book"
+Then the XML element "/library/book[1]/description" should contain "detailed"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should not contain :text</code></summary>
+
+<br/>
+Assert that an XML element does not contain specified text
+<br/><br/>
+
+```gherkin
+Then the XML element "//description" should not contain "nonexistent"
+Then the XML element "/library/book[1]/title" should not contain "wrong"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute on element :element should exist</code></summary>
+
+<br/>
+Assert that an XML attribute exists on an element
+<br/><br/>
+
+```gherkin
+Then the XML attribute "id" on element "//book" should exist
+Then the XML attribute "category" on element "/library/book[1]" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute on element :element should not exist</code></summary>
+
+<br/>
+Assert that an XML attribute does not exist on an element
+<br/><br/>
+
+```gherkin
+Then the XML attribute "nonexistent" on element "//book" should not exist
+Then the XML attribute "missing" on element "/library/book[1]" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute on element :element should be equal to :text</code></summary>
+
+<br/>
+Assert that an XML attribute value equals specified text
+<br/><br/>
+
+```gherkin
+Then the XML attribute "id" on element "//book" should be equal to "123"
+Then the XML attribute "category" on element "/library/book[1]" should be equal to "fiction"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute on element :element should not be equal to :text</code></summary>
+
+<br/>
+Assert that an XML attribute value does not equal specified text
+<br/><br/>
+
+```gherkin
+Then the XML attribute "id" on element "//book" should not be equal to "999"
+Then the XML attribute "category" on element "/library/book[1]" should not be equal to "science"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute_name on element :element should contain :text</code></summary>
+
+<br/>
+Assert that an XML attribute value contains specified text
+<br/><br/>
+
+```gherkin
+Then the XML attribute "category" on element "//book" should contain "fic"
+Then the XML attribute "id" on element "/library/book[1]" should contain "12"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML attribute :attribute_name on element :element should not contain :text</code></summary>
+
+<br/>
+Assert that an XML attribute value does not contain specified text
+<br/><br/>
+
+```gherkin
+Then the XML attribute "category" on element "//book" should not contain "science"
+Then the XML attribute "id" on element "/library/book[1]" should not contain "999"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML element :element should have :count element(s)</code></summary>
+
+<br/>
+Assert that an XML element has a specific number of child elements
+<br/><br/>
+
+```gherkin
+Then the XML element "//library" should have "3" elements
+Then the XML element "/library" should have "3" elements
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML should use the namespace :namespace</code></summary>
+
+<br/>
+Assert that the XML uses a specific namespace
+<br/><br/>
+
+```gherkin
+Then the XML should use the namespace "http://example.com/custom"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the XML should not use the namespace :namespace</code></summary>
+
+<br/>
+Assert that the XML does not use a specific namespace
+<br/><br/>
+
+```gherkin
+Then the XML should not use the namespace "http://example.com/nonexistent"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the following XSD schema:</code></summary>
+
+<br/>
+Assert that the response validates against an inline XSD schema
+<br/><br/>
+
+```gherkin
+Then the response should match the following XSD schema:
+  """
+  <?xml version="1.0"?>
+  <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="note" type="xs:string"/>
+  </xs:schema>
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the XSD schema in the file :filename</code></summary>
+
+<br/>
+Assert that the response validates against an XSD schema from a file
+<br/><br/>
+
+```gherkin
+Then the response should match the XSD schema in the file "xml_schema.xsd"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the following DTD:</code></summary>
+
+<br/>
+Assert that the response validates against an inline DTD
+<br/><br/>
+
+```gherkin
+Then the response should match the following DTD:
+  """
+  <!ELEMENT note (#PCDATA)>
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the DTD in the file :filename</code></summary>
+
+<br/>
+Assert that the response validates against a DTD from a file
+<br/><br/>
+
+```gherkin
+Then the response should match the DTD in the file "xml_schema.dtd"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the following RelaxNG schema:</code></summary>
+
+<br/>
+Assert that the response validates against an inline RelaxNG schema
+<br/><br/>
+
+```gherkin
+Then the response should match the following RelaxNG schema:
+  """
+  <element name="note" xmlns="http://relaxng.org/ns/structure/1.0">
+    <text/>
+  </element>
+  """
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should match the RelaxNG schema in the file :filename</code></summary>
+
+<br/>
+Assert that the response validates against a RelaxNG schema from a file
+<br/><br/>
+
+```gherkin
+Then the response should match the RelaxNG schema in the file "xml_schema.rng"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should be a valid RSS feed</code></summary>
+
+<br/>
+Assert that the response is a valid RSS 2.0 feed
+<br/><br/>
+
+```gherkin
+Then the response should be a valid RSS feed
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the response should be a valid Atom feed</code></summary>
+
+<br/>
+Assert that the response is a valid Atom feed
+<br/><br/>
+
+```gherkin
+Then the response should be a valid Atom feed
+
+```
+
+</details>
+
+
+
+## Drupal\BigPipeTrait
+
+[Source](src/Drupal/BigPipeTrait.php), [Example](tests/behat/features/drupal_big_pipe.feature)
+
+>  Wait for Drupal BigPipe placeholders to be replaced on JavaScript scenarios.
+>  <br/><br/>
+>  Drupal BigPipe streams parts of a page in after the initial response and
+>  replaces its `<span data-big-pipe-placeholder-id="...">` markers with the
+>  real markup using JavaScript. Assertions that run before those replacements
+>  land intermittently fail with "element not found". When this trait is
+>  included, every `@javascript` scenario waits - before each step - until no
+>  BigPipe placeholder markers remain in the DOM, removing that race without an
+>  explicit step.
+>  <br/><br/>
+>  The wait is best-effort: on timeout the step still runs, so a genuinely stuck
+>  placeholder surfaces as the real assertion failure rather than being masked
+>  here. Non-JavaScript scenarios are left untouched, where BigPipe renders
+>  server-side (see the drupal-extension `@bigpipe` cookie handling).
+>  <br/><br/>
+>  Skip processing with tag: `@behat-steps-skip:BigPipeTrait`.
+>  <br/><br/>
+>  Override `bigPipeGetWaitTimeout()` (or set `$bigPipeWaitTimeout`) in your
+>  `FeatureContext` to change the maximum wait.
+
+
+## Drupal\BlockTrait
+
+[Source](src/Drupal/BlockTrait.php), [Example](tests/behat/features/drupal_block.feature)
+
+>  Manage Drupal blocks.
+>  - Create and configure blocks with custom visibility conditions.
+>  - Place blocks in regions and assert their configured region.
+>  - Created blocks are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given the instance of :admin_label block exists with the following configuration:</code></summary>
+
+<br/>
+Create a block instance
+<br/><br/>
+
+```gherkin
+Given the instance of "My block" block exists with the following configuration:
+  | label         | My block |
+  | label_display | 1        |
+  | region        | content  |
+  | status        | 1        |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label has the following configuration:</code></summary>
+
+<br/>
+Configure an existing block identified by label
+<br/><br/>
+
+```gherkin
+Given the block "My block" has the following configuration:
+  | label_display | 1       |
+  | region        | content |
+  | status        | 1       |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label does not exist</code></summary>
+
+<br/>
+Remove a block specified by label
+<br/><br/>
+
+```gherkin
+Given the block "My block" does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label is enabled</code></summary>
+
+<br/>
+Enable a block specified by label
+<br/><br/>
+
+```gherkin
+Given the block "My block" is enabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label is disabled</code></summary>
+
+<br/>
+Disable a block specified by label
+<br/><br/>
+
+```gherkin
+Given the block "My block" is disabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label has the following :condition condition configuration:</code></summary>
+
+<br/>
+Set a visibility condition for a block
+<br/><br/>
+
+```gherkin
+Given the block "My block" has the following "request_path" condition configuration:
+  | pages  | /node/1\r\n/about |
+  | negate | 0                 |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the block :label has the :condition condition removed</code></summary>
+
+<br/>
+Remove a visibility condition from the specified block
+<br/><br/>
+
+```gherkin
+Given the block "My block" has the "request_path" condition removed
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the block :label should exist</code></summary>
+
+<br/>
+Assert that a block with the specified label exists
+<br/><br/>
+
+```gherkin
+Then the block "My block" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the block :label should not exist</code></summary>
+
+<br/>
+Assert that a block with the specified label does not exist
+<br/><br/>
+
+```gherkin
+Then the block "My block" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the block :label should exist in the :region region</code></summary>
+
+<br/>
+Assert that a block with the specified label exists in a region
+<br/><br/>
+
+```gherkin
+Then the block "My block" should exist in the "content" region
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the block :label should not exist in the :region region</code></summary>
+
+<br/>
+Assert that a block with the specified label does not exist in a region
+<br/><br/>
+
+```gherkin
+Then the block "My block" should not exist in the "content" region
+
+```
+
+</details>
+
+## Drupal\CacheTrait
+
+[Source](src/Drupal/CacheTrait.php), [Example](tests/behat/features/drupal_cache.feature)
+
+>  Invalidate specific Drupal caches from within a scenario.
+>  <br/><br/>
+>  Provides targeted cache-clearing steps for single paths, path patterns, and
+>  the render cache. A full cache clear is intentionally out of scope because
+>  `DrupalContext::@Given the cache has been cleared` already covers it.
+
+
+<details>
+  <summary><code>@Given the page cache for the path :path has been cleared</code></summary>
+
+<br/>
+Clear the page cache for a single path
+<br/><br/>
+
+```gherkin
+Given the page cache for the path "/about" has been cleared
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the page cache for the paths matching :path_pattern has been cleared</code></summary>
+
+<br/>
+Clear the page cache for all paths matching a glob-style pattern
+<br/><br/>
+
+```gherkin
+Given the page cache for the paths matching "/news*" has been cleared
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the render cache has been cleared</code></summary>
+
+<br/>
+Clear the render cache
+<br/><br/>
+
+```gherkin
+Given the render cache has been cleared
+
+```
+
+</details>
+
+## Drupal\ConfigOverrideTrait
+
+[Source](src/Drupal/ConfigOverrideTrait.php), [Example](tests/behat/features/drupal_config_override.feature)
+
+>  Disable Drupal config overrides from settings.php during a scenario.
+>  <br/><br/>
+>  Config overrides set in `settings.php` replace the stored configuration at
+>  runtime. They cannot be disabled from the Behat process because tests run
+>  in a separate process from the system under test (SUT).
+>  <br/><br/>
+>  This trait signals the SUT - through a request header, a `$_SERVER` entry
+>  and an environment variable - that specific config objects should be read
+>  from their original (unoverridden) values. The SUT is responsible for
+>  reading that signal and calling `ImmutableConfig::getOriginal()` instead of
+>  `ImmutableConfig::get()` for the listed config names.
+>  <br/><br/>
+>  Activated by adding `@disable-config-override:CONFIG_NAME` tags to a
+>  feature or scenario. Multiple tags are combined into a comma-separated
+>  list. Runs on every step because some steps reset headers set earlier in
+>  the scenario.
+>  <br/><br/>
+>  Limitations:
+>  - Cannot be used with Selenium/JavaScript drivers (the underlying driver
+>  does not expose request headers).
+>  - The SUT must implement support for the `X-Config-No-Override` header,
+>  the `HTTP_X_CONFIG_NO_OVERRIDE` `$_SERVER` entry or the matching
+>  environment variable. An example implementation:
+>  ```
+>    public function getConfigValue(string $name, string $key): mixed {
+>      $config = $this->configFactory->get($name);
+>      $header = $_SERVER['HTTP_X_CONFIG_NO_OVERRIDE'] ?? getenv('HTTP_X_CONFIG_NO_OVERRIDE') ?: '';
+>      if (in_array($name, array_map('trim', explode(',', $header)), TRUE)) {
+>        return $config->getOriginal($key, FALSE);
+>      }
+>      return $config->get($key);
+>    }
+>  ```
+>  <br/><br/>
+>  Soft dependency: if the consuming context also uses `RestTrait`, the
+>  `$restHeaders` array is updated so standalone REST requests receive the
+>  same signal.
+>  <br/><br/>
+>  Example:
+>  ```
+>  @api @disable-config-override:system.site @disable-config-override:myconfig.settings
+>  Scenario: Render the page with original config values
+>    When I visit "/"
+>    Then the response should contain "Original site name"
+>  ```
+>  <br/><br/>
+>  Skip processing with tags: `@behat-steps-skip:configOverrideBeforeScenario`
+>  and `@behat-steps-skip:configOverrideBeforeStep`.
+
+
+## Drupal\ConfigTrait
+
+[Source](src/Drupal/ConfigTrait.php), [Example](tests/behat/features/drupal_config.feature)
+
+>  Assert and set stored Drupal configuration values with automatic revert.
+>  <br/><br/>
+>  Set a configuration value for test setup and assert that a configuration
+>  object's key holds, or contains, an expected value. Nested keys are
+>  addressable with dotted notation (for example `page.front`).
+>  <br/><br/>
+>  Two families of assertions read the value differently:
+>  - The default steps read the STORED value via editable configuration,
+>  ignoring `settings.php` overrides. This is symmetric with the set steps
+>  and is what most setup-and-assert scenarios need.
+>  - The `effective` steps read the value through the config factory with
+>  module and `settings.php` overrides applied - the value the running site
+>  actually uses.
+>  <br/><br/>
+>  Values are compared by their stringified form, so `true`, `42` and JSON
+>  arrays written in a step match their typed configuration counterparts. The
+>  `contain` steps match a substring for string values and membership for
+>  array values, searched recursively.
+>  <br/><br/>
+>  Configuration objects touched by the set steps are snapshotted on first
+>  write and restored after the scenario: an existing object is reset to its
+>  original data and an object that did not exist is deleted. Skip the revert
+>  with `@behat-steps-skip:configAfterScenario` or `@behat-steps-skip:ConfigTrait`.
+>  <br/><br/>
+>  ```
+>  @api
+>  Scenario: Assert configured values
+>    Given the config "mymodule.settings" key "api.endpoint" has the value "https://api.example.com"
+>    Then the config "mymodule.settings" key "api.endpoint" should have the value "https://api.example.com"
+>    And the config "system.site" key "name" should have the effective value "My overridden site"
+>  ```
+
+
+<details>
+  <summary><code>@Given the config :name key :key has the value :value</code></summary>
+
+<br/>
+Set a stored Drupal configuration value
+<br/><br/>
+
+```gherkin
+Given the config "system.site" key "page.front" has the value "/node"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following config values:</code></summary>
+
+<br/>
+Set multiple stored Drupal configuration values from a table
+<br/><br/>
+
+```gherkin
+Given the following config values:
+  | name              | key          | value                   |
+  | system.site       | name         | My site                 |
+  | mymodule.settings | api.endpoint | https://api.example.com |
+  | mymodule.settings | roles        | ["editor","reviewer"]   |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should have the value :value</code></summary>
+
+<br/>
+Assert that a stored configuration value equals an expected value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should have the value "My site"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should not have the value :value</code></summary>
+
+<br/>
+Assert that a stored configuration value does not equal a value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should not have the value "Wrong"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should contain the value :value</code></summary>
+
+<br/>
+Assert that a stored configuration value contains an expected value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should contain the value "site"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should not contain the value :value</code></summary>
+
+<br/>
+Assert that a stored configuration value does not contain a value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should not contain the value "xyz"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should have the effective value :value</code></summary>
+
+<br/>
+Assert that an effective configuration value equals an expected value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should have the effective value "Overridden"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should not have the effective value :value</code></summary>
+
+<br/>
+Assert that an effective configuration value does not equal a value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should not have the effective value "Wrong"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should contain the effective value :value</code></summary>
+
+<br/>
+Assert that an effective configuration value contains an expected value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should contain the effective value "Over"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the config :name key :key should not contain the effective value :value</code></summary>
+
+<br/>
+Assert that an effective configuration value does not contain a value
+<br/><br/>
+
+```gherkin
+Then the config "system.site" key "name" should not contain the effective value "xyz"
+
+```
+
+</details>
+
+## Drupal\ContentBlockTrait
+
+[Source](src/Drupal/ContentBlockTrait.php), [Example](tests/behat/features/drupal_content_block.feature)
+
+>  Manage Drupal content blocks.
+>  - Define reusable custom block content with structured field data.
+>  - Create, edit, and verify block_content entities by type and description.
+>  - Created entities are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given the following :type content blocks do not exist:</code></summary>
+
+<br/>
+Remove content blocks of a specified type with the given descriptions
+<br/><br/>
+
+```gherkin
+Given the following "basic" content blocks do not exist:
+  | [TEST] Footer Block  |
+  | [TEST] Contact Form  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :type content blocks exist:</code></summary>
+
+<br/>
+Create content blocks of the specified type with the given field values
+<br/><br/>
+
+```gherkin
+Given the following "basic" content blocks exist:
+  | info                  | status | body                   | created           |
+  | [TEST] Footer Contact | 1      | Call us at 555-1234    | 2023-01-17 8:00am |
+  | [TEST] Copyright      | 1      | © 2023 Example Company | 2023-01-18 9:00am |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :type content blocks with fields:</code></summary>
+
+<br/>
+Create content blocks with vertical field format
+<br/><br/>
+
+```gherkin
+Given the following basic content blocks with fields:
+  | info   | [TEST] Block 1        | [TEST] Block 2        |
+  | body   | First block content   | Second block content  |
+  | status | 1                     | 1                     |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I edit the :type content block with the description :description</code></summary>
+
+<br/>
+Navigate to the edit page for a specified content block
+<br/><br/>
+
+```gherkin
+When I edit the "basic" content block with the description "[TEST] Footer Block"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the content block type :type should exist</code></summary>
+
+<br/>
+Assert that a content block type exists
+<br/><br/>
+
+```gherkin
+Then the content block type "Search" should exist
+
+```
+
+</details>
+
+## Drupal\ContentTrait
+
+[Source](src/Drupal/ContentTrait.php), [Example](tests/behat/features/drupal_content.feature)
+
+>  Manage Drupal content with workflow and moderation support.
+>  - Create, find, and manipulate nodes with structured field data.
+>  - Navigate to node pages by title and manage editorial workflows.
+>  - Support content moderation transitions and scheduled publishing.
+>  - Set path aliases and assert the published state of content.
+>  
+>  Steps that match content by title resolve to the most recently created node
+>  when several nodes of the same type share that title.
+>  <br/><br/>
+>  The path alias step requires the core `path` module to be enabled. When the
+>  contrib `pathauto` module is enabled, automatic alias generation is switched
+>  off for the content so that the provided alias is preserved.
+
+
+<details>
+  <summary><code>@Given the content type :content_type does not exist</code></summary>
+
+<br/>
+Delete content type
+<br/><br/>
+
+```gherkin
+Given the content type "article" does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :content_type content does not exist:</code></summary>
+
+<br/>
+Remove content defined by provided properties
+<br/><br/>
+
+```gherkin
+Given the following "article" content does not exist:
+  | title                |
+  | Test article         |
+  | Another test article |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :type content with fields:</code></summary>
+
+<br/>
+Create content with vertical field format
+<br/><br/>
+
+```gherkin
+Given the following page content with fields:
+  | title  | [TEST] Page 1        | [TEST] Page 2        |
+  | body   | First page content   | Second page content  |
+  | status | 1                    | 1                    |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :content_type content page with the title :title</code></summary>
+
+<br/>
+Visit a page of a type with a specified title
+<br/><br/>
+
+```gherkin
+When I visit the "article" content page with the title "Test article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :content_type content edit page with the title :title</code></summary>
+
+<br/>
+Visit an edit page of a type with a specified title
+<br/><br/>
+
+```gherkin
+When I visit the "article" content edit page with the title "Test article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :content_type content delete page with the title :title</code></summary>
+
+<br/>
+Visit a delete page of a type with a specified title
+<br/><br/>
+
+```gherkin
+When I visit the "article" content delete page with the title "Test article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :content_type content scheduled transitions page with the title :title</code></summary>
+
+<br/>
+Visit a scheduled transitions page of a type with a specified title
+<br/><br/>
+
+```gherkin
+When I visit the "article" content scheduled transitions page with the title "Test article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :content_type content revisions page with the title :title</code></summary>
+
+<br/>
+Visit a revisions page of a type with a specified title
+<br/><br/>
+
+```gherkin
+When I visit the "article" content revisions page with the title "Test article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I change the moderation state of the :content_type content with the title :title to the :new_state state</code></summary>
+
+<br/>
+Change moderation state of a content with the specified title
+<br/><br/>
+
+```gherkin
+When I change the moderation state of the "article" content with the title "Test article" to the "published" state
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I rebuild the access grants for the :content_type content with the title :title</code></summary>
+
+<br/>
+Rebuild node access grants for a content with the specified title
+<br/><br/>
+
+```gherkin
+When I rebuild the access grants for the "article" content with the title "My article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I rebuild the access grants for all content</code></summary>
+
+<br/>
+Rebuild node access grants for all content
+<br/><br/>
+
+```gherkin
+When I rebuild the access grants for all content
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I set the path alias of the :content_type content with the title :title to :alias</code></summary>
+
+<br/>
+Set the path alias of a content with the specified title
+<br/><br/>
+
+```gherkin
+When I set the path alias of the "article" content with the title "Test article" to "/my-test-article"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then :content_type content with the title :title should not exist</code></summary>
+
+<br/>
+Assert content with specified type and title does not exist
+<br/><br/>
+
+```gherkin
+Then "page" content with the title "Test page" should not exist
+Then "article" content with the title "Test article" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then :content_type content with the title :title should be published</code></summary>
+
+<br/>
+Assert content with specified type and title is published
+<br/><br/>
+
+```gherkin
+Then "page" content with the title "Test page" should be published
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then :content_type content with the title :title should not be published</code></summary>
+
+<br/>
+Assert content with specified type and title is not published
+<br/><br/>
+
+```gherkin
+Then "page" content with the title "Test page" should not be published
+
+```
+
+</details>
+
+## Drupal\DraggableviewsTrait
+
+[Source](src/Drupal/DraggableviewsTrait.php), [Example](tests/behat/features/drupal_draggableviews.feature)
+
+>  Order items in the Drupal Draggable Views.
+
+
+<details>
+  <summary><code>@When I save the draggable views items of the view :view_id and the display :view_display_id for the :bundle content in the following order:</code></summary>
+
+<br/>
+Save order of the Draggable Order items
+<br/><br/>
+
+```gherkin
+When I save the draggable views items of the view "draggableviews_demo" and the display "page_1" for the "article" content in the following order:
+  | First Article  |
+  | Second Article |
+  | Third Article  |
+
+```
+
+</details>
+
+## Drupal\EckTrait
+
+[Source](src/Drupal/EckTrait.php), [Example](tests/behat/features/drupal_eck.feature)
+
+>  Manage Drupal ECK entities with custom type and bundle creation.
+>  - Create structured ECK entities with defined field values.
+>  - Visit and edit ECK entity pages.
+>  - Created entities are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given the following eck :bundle :entity_type entities exist:</code></summary>
+
+<br/>
+Create eck entities
+<br/><br/>
+
+```gherkin
+Given the following eck "contact" "contact_type" entities exist:
+  | title  | field_marine_animal     | field_fish_type | ... |
+  | Snook  | Fish                    | Marine fish     | 10  |
+  | ...    | ...                     | ...             | ... |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following eck :bundle :entity_type entities do not exist:</code></summary>
+
+<br/>
+Remove custom entities by field
+<br/><br/>
+
+```gherkin
+Given the following eck "contact" "contact_type" entities do not exist:
+  | title           |
+  | Entity label    |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit eck :bundle :entity_type entity with the title :title</code></summary>
+
+<br/>
+Navigate to view entity page with specified type and title
+<br/><br/>
+
+```gherkin
+When I visit eck "contact" "contact_type" entity with the title "Test contact"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I edit eck :bundle :entity_type entity with the title :title</code></summary>
+
+<br/>
+Navigate to edit eck entity page with specified type and title
+<br/><br/>
+
+```gherkin
+When I edit eck "contact" "contact_type" entity with the title "Test contact"
+
+```
+
+</details>
+
+## Drupal\EmailTrait
+
+[Source](src/Drupal/EmailTrait.php), [Example](tests/behat/features/drupal_email.feature)
+
+>  Test Drupal email functionality with content verification.
+>  - Capture and examine outgoing emails with header and body validation.
+>  - Follow links and test attachments within email content.
+>  - Configure mail handler systems for proper test isolation.
+>  
+>  Skip processing with tags: `@behat-steps-skip:emailBeforeScenario` or
+>  `@behat-steps-skip:emailAfterScenario`
+>  <br/><br/>
+>  Special tags:
+>  - `@email` - enable email tracking using a default handler
+>  - `@email:{type}` - enable email tracking using a `{type}` handler
+>  - `@debug` (enable detailed logs)
+
+
+<details>
+  <summary><code>@When I clear the test email system queue</code></summary>
+
+<br/>
+Clear test email system queue
+<br/><br/>
+
+```gherkin
+When I clear the test email system queue
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I follow link number :link_number in the email with the subject :subject</code></summary>
+
+<br/>
+Follow a specific link number in an email with the given subject
+<br/><br/>
+
+```gherkin
+When I follow link number "1" in the email with the subject "Account Verification"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I follow link number :link_number in the email with the subject containing :subject</code></summary>
+
+<br/>
+Follow a specific link number in an email whose subject contains the given substring
+<br/><br/>
+
+```gherkin
+When I follow link number "1" in the email with the subject containing "Verification"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I enable the test email system</code></summary>
+
+<br/>
+Enable the test email system
+<br/><br/>
+
+```gherkin
+When I enable the test email system
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I disable the test email system</code></summary>
+
+<br/>
+Disable test email system
+<br/><br/>
+
+```gherkin
+When I disable the test email system
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should be sent to the :address</code></summary>
+
+<br/>
+Assert that an email should be sent to an address
+<br/><br/>
+
+```gherkin
+Then an email should be sent to the "user@example.com"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then no emails should have been sent</code></summary>
+
+<br/>
+Assert that no email messages should be sent
+<br/><br/>
+
+```gherkin
+Then no emails should have been sent
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then no emails should have been sent to the :address</code></summary>
+
+<br/>
+Assert that no email messages should be sent to a specified address
+<br/><br/>
+
+```gherkin
+Then no emails should have been sent to the "user@example.com"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email header :header should contain:</code></summary>
+
+<br/>
+Assert that the email message header should contain specified content
+<br/><br/>
+
+```gherkin
+Then the email header "Subject" should contain:
+"""
+Account details
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email header :header should exactly be:</code></summary>
+
+<br/>
+Assert that the email message header should be the exact specified content
+<br/><br/>
+
+```gherkin
+Then the email header "Subject" should exactly be:
+"""
+Your Account Details
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should be sent to the address :address with the content:</code></summary>
+
+<br/>
+Assert that an email should be sent to an address with the exact content in the body
+<br/><br/>
+
+```gherkin
+Then an email should be sent to the address "user@example.com" with the content:
+"""
+Welcome to our site!
+Click the link below to verify your account.
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should be sent to the address :address with the content containing:</code></summary>
+
+<br/>
+Assert that an email should be sent to an address with the body containing specific content
+<br/><br/>
+
+```gherkin
+Then an email should be sent to the address "user@example.com" with the content containing:
+"""
+verification link
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should be sent to the address :address with the content not containing:</code></summary>
+
+<br/>
+Assert that an email should be sent to an address with the body not containing specific content
+<br/><br/>
+
+```gherkin
+Then an email should be sent to the address "user@example.com" with the content not containing:
+"""
+password
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should not be sent to the address :address with the content:</code></summary>
+
+<br/>
+Assert that an email should not be sent to an address with the exact content in the body
+<br/><br/>
+
+```gherkin
+Then an email should not be sent to the address "wrong@example.com" with the content:
+"""
+Welcome to our site!
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an email should not be sent to the address :address with the content containing:</code></summary>
+
+<br/>
+Assert that an email should not be sent to an address with the body containing specific content
+<br/><br/>
+
+```gherkin
+Then an email should not be sent to the address "wrong@example.com" with the content containing:
+"""
+verification link
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email field :field should contain:</code></summary>
+
+<br/>
+Assert that the email field should contain a value
+<br/><br/>
+
+```gherkin
+Then the email field "body" should contain:
+"""
+Please verify your account
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email field :field should be:</code></summary>
+
+<br/>
+Assert that the email field should exactly match a value
+<br/><br/>
+
+```gherkin
+Then the email field "subject" should be:
+"""
+Account Verification
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email field :field should not contain:</code></summary>
+
+<br/>
+Assert that the email field should not contain a value
+<br/><br/>
+
+```gherkin
+Then the email field "body" should not contain:
+"""
+password
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the email field :field should not be:</code></summary>
+
+<br/>
+Assert that the email field should not exactly match a value
+<br/><br/>
+
+```gherkin
+Then the email field "subject" should not be:
+"""
+Password Reset
+"""
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the file :file_name should be attached to the email with the subject :subject</code></summary>
+
+<br/>
+Assert that a file is attached to an email message with specified subject
+<br/><br/>
+
+```gherkin
+Then the file "document.pdf" should be attached to the email with the subject "Your document"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the file :file_name should be attached to the email with the subject containing :subject</code></summary>
+
+<br/>
+Assert that a file is attached to an email message with a subject containing the specified substring
+<br/><br/>
+
+```gherkin
+Then the file "report.xlsx" should be attached to the email with the subject containing "Monthly Report"
+
+```
+
+</details>
+
+## Drupal\FileTrait
+
+[Source](src/Drupal/FileTrait.php), [Example](tests/behat/features/drupal_file.feature)
+
+>  Manage Drupal file entities with upload and storage operations.
+>  - Create managed and unmanaged files with specific URIs and content.
+>  - Verify file existence, content, and proper storage locations.
+>  - Set up file system directories and clean up created files.
+>  
+>  Skip processing with tags: `@behat-steps-skip:fileBeforeScenario` or
+>  `@behat-steps-skip:fileAfterScenario`
+
+
+<details>
+  <summary><code>@Given the following managed files:</code></summary>
+
+<br/>
+Create managed files with properties provided in the table
+<br/><br/>
+
+```gherkin
+Given the following managed files:
+  | path         | uri                    | status |
+  | document.pdf | public://document.pdf  | 1      |
+  | image.jpg    | public://images/pic.jpg| 1      |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following managed files do not exist:</code></summary>
+
+<br/>
+Delete managed files defined by provided properties/fields
+<br/><br/>
+
+```gherkin
+Given the following managed files do not exist:
+  | filename      |
+  | myfile.jpg    |
+  | otherfile.jpg |
+Given the following managed files do not exist:
+  | uri                    |
+  | public://myfile.jpg    |
+  | public://otherfile.jpg |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the unmanaged file at the URI :uri exists</code></summary>
+
+<br/>
+Create an unmanaged file
+<br/><br/>
+
+```gherkin
+Given the unmanaged file at the URI "public://sample.txt" exists
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the unmanaged file at the URI :uri exists with :content</code></summary>
+
+<br/>
+Create an unmanaged file with specified content
+<br/><br/>
+
+```gherkin
+Given the unmanaged file at the URI "public://data.txt" exists with "Sample content"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an unmanaged file at the URI :uri should exist</code></summary>
+
+<br/>
+Assert that an unmanaged file with specified URI exists
+<br/><br/>
+
+```gherkin
+Then an unmanaged file at the URI "public://sample.txt" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an unmanaged file at the URI :uri should not exist</code></summary>
+
+<br/>
+Assert that an unmanaged file with specified URI does not exist
+<br/><br/>
+
+```gherkin
+Then an unmanaged file at the URI "public://temp.txt" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an unmanaged file at the URI :uri should contain :content</code></summary>
+
+<br/>
+Assert that an unmanaged file exists and has specified content
+<br/><br/>
+
+```gherkin
+Then an unmanaged file at the URI "public://config.txt" should contain "debug=true"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then an unmanaged file at the URI :uri should not contain :content</code></summary>
+
+<br/>
+Assert that an unmanaged file exists and does not have specified content
+<br/><br/>
+
+```gherkin
+Then an unmanaged file at the URI "public://config.txt" should not contain "debug=false"
+
+```
+
+</details>
+
+## Drupal\MediaTrait
+
+[Source](src/Drupal/MediaTrait.php), [Example](tests/behat/features/drupal_media.feature)
+
+>  Manage Drupal media entities with type-specific field handling.
+>  - Create structured media items with proper file reference handling.
+>  - Assert media type and media item existence.
+>  - Visit media view, edit, delete and revision pages.
+>  - Support for multiple media types with field value expansion handling.
+>  - Created entities are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given :media_type media type does not exist</code></summary>
+
+<br/>
+Remove media type
+<br/><br/>
+
+```gherkin
+Given "video" media type does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following media :media_type exist:</code></summary>
+
+<br/>
+Create media of a given type
+<br/><br/>
+
+```gherkin
+Given the following media "video" exist:
+  | name     | field1   | field2 | field3           |
+  | My media | file.jpg | value  | value            |
+  | ...      | ...      | ...    | ...              |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :bundle media with fields:</code></summary>
+
+<br/>
+Create media entities with vertical field format
+<br/><br/>
+
+```gherkin
+Given the following image media with fields:
+  | name              | [TEST] Image 1       | [TEST] Image 2       |
+  | field_media_image | image1.jpg           | image2.jpg           |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following media :media_type do not exist:</code></summary>
+
+<br/>
+Remove media defined by provided properties
+<br/><br/>
+
+```gherkin
+Given the following media "image" do not exist:
+  | name               |
+  | Media item         |
+  | Another media item |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I edit the media :media_type with the name :name</code></summary>
+
+<br/>
+Navigate to edit media with specified type and name
+<br/><br/>
+
+```gherkin
+When I edit the media "document" with the name "Test document"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the media :media_type with the name :name</code></summary>
+
+<br/>
+Navigate to view page of media with specified type and name
+<br/><br/>
+
+```gherkin
+When I visit the media "image" with the name "Test media image"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the media :media_type delete page with the name :name</code></summary>
+
+<br/>
+Navigate to delete page of media with specified type and name
+<br/><br/>
+
+```gherkin
+When I visit the media "image" delete page with the name "Test media image"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the media :media_type revisions page with the name :name</code></summary>
+
+<br/>
+Navigate to revisions page of media with specified type and name
+<br/><br/>
+
+```gherkin
+When I visit the media "image" revisions page with the name "Test media image"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :media_type media type should exist</code></summary>
+
+<br/>
+Assert that a media type exists
+<br/><br/>
+
+```gherkin
+Then the "image" media type should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :media_type media type should not exist</code></summary>
+
+<br/>
+Assert that a media type does not exist
+<br/><br/>
+
+```gherkin
+Then the "test_type" media type should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :media_type media with the name :name should exist</code></summary>
+
+<br/>
+Assert that a media entity with a specific type and name exists
+<br/><br/>
+
+```gherkin
+Then the "image" media with the name "Test media image" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :media_type media with the name :name should not exist</code></summary>
+
+<br/>
+Assert that a media entity with a specific type and name does not exist
+<br/><br/>
+
+```gherkin
+Then the "image" media with the name "Test media image" should not exist
+
+```
+
+</details>
+
+## Drupal\MenuTrait
+
+[Source](src/Drupal/MenuTrait.php), [Example](tests/behat/features/drupal_menu.feature)
+
+>  Manage Drupal menu systems and menu link rendering.
+>  - Create and remove menus by label.
+>  - Create and remove menu links, including parent-child hierarchies.
+>  - Created menus and menu links are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given the menu :menu_name does not exist</code></summary>
+
+<br/>
+Remove a single menu by its label if it exists
+<br/><br/>
+
+```gherkin
+Given the menu "Test Menu" does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following menus:</code></summary>
+
+<br/>
+Create menus
+<br/><br/>
+
+```gherkin
+Given the following menus:
+  | label            | description                    |
+  | Footer Menu     | Links displayed in the footer  |
+  | Secondary Menu  | Secondary navigation menu      |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following menu links do not exist in the menu :menu_name:</code></summary>
+
+<br/>
+Remove menu links by title
+<br/><br/>
+
+```gherkin
+Given the following menu links do not exist in the menu "Main navigation":
+  | About Us     |
+  | Contact      |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following menu links exist in the menu :menu_name:</code></summary>
+
+<br/>
+Create menu links
+<br/><br/>
+
+```gherkin
+Given the following menu links exist in the menu "Main navigation":
+  | title           | enabled | uri                     | parent       |
+  | Products        | 1       | /products               |              |
+  | Latest Products | 1       | /products/latest        | Products     |
+
+```
+
+</details>
+
+## Drupal\ModuleTrait
+
+[Source](src/Drupal/ModuleTrait.php), [Example](tests/behat/features/drupal_module.feature)
+
+>  Enable and disable Drupal modules with automatic state restoration.
+>  <br/><br/>
+>  Supports automatic module management via scenario tags.
+>  <br/><br/>
+>  Skip processing with tags: `@behat-steps-skip:moduleBeforeScenario` and
+>  `@behat-steps-skip:moduleAfterScenario`.
+>  <br/><br/>
+>  Special tags:
+>  - `@module:module_name` - enable module for scenario
+>  - `@module:!module_name` - disable module for scenario
+
+
+<details>
+  <summary><code>@Given the :module module is enabled</code></summary>
+
+<br/>
+Enable a module
+<br/><br/>
+
+```gherkin
+Given the "ctools" module is enabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the :module module is disabled</code></summary>
+
+<br/>
+Disable a module
+<br/><br/>
+
+```gherkin
+Given the "shield" module is disabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following modules are enabled:</code></summary>
+
+<br/>
+Enable multiple modules
+<br/><br/>
+
+```gherkin
+Given the following modules are enabled:
+  | ctools |
+  | views  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following modules are disabled:</code></summary>
+
+<br/>
+Disable multiple modules
+<br/><br/>
+
+```gherkin
+Given the following modules are disabled:
+  | shield           |
+  | stage_file_proxy |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :module module should be enabled</code></summary>
+
+<br/>
+Assert that a module is enabled
+<br/><br/>
+
+```gherkin
+Then the "ctools" module should be enabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :module module should be disabled</code></summary>
+
+<br/>
+Assert that a module is disabled
+<br/><br/>
+
+```gherkin
+Then the "shield" module should be disabled
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following modules should be enabled:</code></summary>
+
+<br/>
+Assert that multiple modules are enabled
+<br/><br/>
+
+```gherkin
+Then the following modules should be enabled:
+  | ctools |
+  | views  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following modules should be disabled:</code></summary>
+
+<br/>
+Assert that multiple modules are disabled
+<br/><br/>
+
+```gherkin
+Then the following modules should be disabled:
+  | shield           |
+  | stage_file_proxy |
+
+```
+
+</details>
+
+## Drupal\OverrideTrait
+
+[Source](src/Drupal/OverrideTrait.php), [Example](tests/behat/features/drupal_override.feature)
+
+>  Override Drupal Extension behaviors.
+>  - Automated entity deletion before creation to avoid duplicates.
+>  - Improved user authentication handling for anonymous users.
+>  
+>  Use with caution: depending on your version of Drupal Extension, PHP and
+>  Composer, the step definition string (/^Given etc.../) may need to be defined
+>  for these overrides. If you encounter errors about missing or duplicated
+>  step definitions, do not include this trait and rather copy the contents of
+>  this file into your feature context file and copy the step definition strings
+>  from the Drupal Extension.
+
+
+## Drupal\ParagraphsTrait
+
+[Source](src/Drupal/ParagraphsTrait.php), [Example](tests/behat/features/drupal_paragraphs.feature)
+
+>  Manage Drupal paragraphs entities with structured field data.
+>  - Create paragraph items with type-specific field values.
+>  - Test nested paragraph structures and reference field handling.
+>  - Attach paragraphs to various entity types with parent-child relationships.
+>  - Created paragraph items are automatically removed at the end of the scenario.
+
+
+<details>
+  <summary><code>@Given the following fields for the paragraph :paragraph_type exist in the field :parent_field within the :parent_bundle :parent_entity_type identified by the field :parent_lookup_field and the value :parent_lookup_value:</code></summary>
+
+<br/>
+Create a paragraph of the given type with fields within an existing entity
+<br/><br/>
+
+```gherkin
+Given the following fields for the paragraph "text" exist in the field "field_component" within the "landing_page" "node" identified by the field "title" and the value "My landing page":
+  | field_paragraph_title           | My paragraph title   |
+  | field_paragraph_longtext:value  | My paragraph message |
+  | field_paragraph_longtext:format | full_html            |
+  | ...                             | ...                  |
+
+```
+
+</details>
+
+## Drupal\QueueTrait
+
+[Source](src/Drupal/QueueTrait.php), [Example](tests/behat/features/drupal_queue.feature)
+
+>  Manage and assert Drupal queue state.
+>  - Clear queues before scenarios.
+>  - Process queue items during tests.
+>  - Assert queue item counts.
+
+
+<details>
+  <summary><code>@Given the :queue queue is empty</code></summary>
+
+<br/>
+Empty a queue
+<br/><br/>
+
+```gherkin
+Given the "myqueue" queue is empty
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I process :count item(s) from the :queue queue</code></summary>
+
+<br/>
+Process a specific number of items from a queue
+<br/><br/>
+
+```gherkin
+When I process 5 items from the "myqueue" queue
+When I process 1 item from the "myqueue" queue
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I process the :queue queue</code></summary>
+
+<br/>
+Process all items from a queue
+<br/><br/>
+
+```gherkin
+When I process the "myqueue" queue
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :queue queue should have :count item(s)</code></summary>
+
+<br/>
+Assert that a queue has a specific number of items
+<br/><br/>
+
+```gherkin
+Then the "myqueue" queue should have 5 items
+Then the "myqueue" queue should have 1 item
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the :queue queue should be empty</code></summary>
+
+<br/>
+Assert that a queue is empty
+<br/><br/>
+
+```gherkin
+Then the "myqueue" queue should be empty
+
+```
+
+</details>
+
+## Drupal\RedirectTrait
+
+[Source](src/Drupal/RedirectTrait.php), [Example](tests/behat/features/drupal_redirect.feature)
+
+>  Manage Drupal redirect entities provided by the contrib `redirect` module.
+>  - Create one or more redirects from a table of source/destination/status.
+>  - Delete redirects by source path.
+>  - Assert that redirects do or do not exist for given source paths.
+>  - Created redirects are automatically removed at the end of the scenario.
+>  
+>  Requires the `redirect` contrib module to be installed and enabled in the
+>  consumer project: add `drupal/redirect` to `composer.json` and enable the
+>  module as part of the site's standard setup (e.g. in `core.extension.yml`).
+
+
+<details>
+  <summary><code>@Given the following redirects exist:</code></summary>
+
+<br/>
+Create one or more redirects
+<br/><br/>
+
+```gherkin
+Given the following redirects exist:
+  | from              | to                        | status_code |
+  | /old/about        | /about                    | 301         |
+  | /promo            | https://example.com/promo | 302         |
+  | /legacy/contact   | /contact                  |             |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following redirects do not exist:</code></summary>
+
+<br/>
+Delete redirects by source path
+<br/><br/>
+
+```gherkin
+Given the following redirects do not exist:
+  | /old/about      |
+  | /legacy/contact |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following redirects should exist:</code></summary>
+
+<br/>
+Assert that one or more redirects exist
+<br/><br/>
+
+```gherkin
+Then the following redirects should exist:
+  | from              | to                        | status_code |
+  | /old/about        | /about                    | 301         |
+  | /promo            | https://example.com/promo |             |
+  | /legacy/contact   |                           |             |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the following redirects should not exist:</code></summary>
+
+<br/>
+Assert that no redirect exists for one or more source paths
+<br/><br/>
+
+```gherkin
+Then the following redirects should not exist:
+  | /old/about      |
+  | /legacy/contact |
+
+```
+
+</details>
+
+## Drupal\SearchApiTrait
+
+[Source](src/Drupal/SearchApiTrait.php), [Example](tests/behat/features/drupal_search_api.feature)
+
+>  Assert Drupal Search API with index and query operations.
+>  - Add content to an index
+>  - Run indexing for a specific number of items.
+
+
+<details>
+  <summary><code>@When I add the :content_type content with the title :title to the search index</code></summary>
+
+<br/>
+Index a node of a specific content type with a specific title
+<br/><br/>
+
+```gherkin
+When I add the "article" content with the title "Test Article" to the search index
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I run search indexing for :count item(s)</code></summary>
+
+<br/>
+Run indexing for a specific number of items
+<br/><br/>
+
+```gherkin
+When I run search indexing for 5 items
+When I run search indexing for 1 item
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I run the Search API cron</code></summary>
+
+<br/>
+Run the Search API module cron hook
+<br/><br/>
+
+```gherkin
+When I run the Search API cron
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I run the Search API Solr cron</code></summary>
+
+<br/>
+Run the Search API Solr module cron hook
+<br/><br/>
+
+```gherkin
+When I run the Search API Solr cron
+
+```
+
+</details>
+
+## Drupal\StateTrait
+
+[Source](src/Drupal/StateTrait.php), [Example](tests/behat/features/drupal_state.feature)
+
+>  Manage and assert Drupal State API values with automatic revert.
+>  <br/><br/>
+>  Provides set, delete, and assertion steps for keys stored through
+>  `\Drupal::state()`. Touched keys are snapshotted on first access and
+>  reverted after the scenario finishes.
+>  <br/><br/>
+>  Skip the revert with `@behat-steps-skip:stateAfterScenario` or with the
+>  convenience tag `@behat-steps-skip:StateTrait`. The snapshot registry is
+>  cleared unconditionally before and after the scenario to prevent state
+>  leaking into subsequent scenarios.
+
+
+<details>
+  <summary><code>@Given the state :name has the value :value</code></summary>
+
+<br/>
+Set a Drupal state value
+<br/><br/>
+
+```gherkin
+Given the state "my_module.launched" has the value "1"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the state :name does not exist</code></summary>
+
+<br/>
+Delete a Drupal state value
+<br/><br/>
+
+```gherkin
+Given the state "my_module.launched" does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following state values:</code></summary>
+
+<br/>
+Set multiple Drupal state values from a table
+<br/><br/>
+
+```gherkin
+Given the following state values:
+  | name                   | value |
+  | my_module.launched     | 1     |
+  | my_module.feature_flag | 0     |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the state :name should have the value :value</code></summary>
+
+<br/>
+Assert that a Drupal state value equals an expected value
+<br/><br/>
+
+```gherkin
+Then the state "my_module.launched" should have the value "1"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the state :name should not exist</code></summary>
+
+<br/>
+Assert that a Drupal state key does not exist
+<br/><br/>
+
+```gherkin
+Then the state "my_module.launched" should not exist
+
+```
+
+</details>
+
+## Drupal\TaxonomyTrait
+
+[Source](src/Drupal/TaxonomyTrait.php), [Example](tests/behat/features/drupal_taxonomy.feature)
+
+>  Manage Drupal taxonomy terms with vocabulary organization.
+>  - Create term vocabulary structures using field values.
+>  - Navigate to term pages
+>  - Verify vocabulary configurations.
+
+
+<details>
+  <summary><code>@Given the following :vocabulary terms with fields:</code></summary>
+
+<br/>
+Create taxonomy terms with vertical field format
+<br/><br/>
+
+```gherkin
+Given the following tags terms with fields:
+  | name        | [TEST] Behat    | [TEST] Testing  |
+  | description | Testing tag     | QA tag          |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following :vocabulary_machine_name vocabulary terms do not exist:</code></summary>
+
+<br/>
+Remove terms from a specified vocabulary
+<br/><br/>
+
+```gherkin
+Given the following "fruits" vocabulary terms do not exist:
+  | Apple |
+  | Pear  |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :vocabulary_machine_name term page with the name :term_name</code></summary>
+
+<br/>
+Visit specified vocabulary term page
+<br/><br/>
+
+```gherkin
+When I visit the "fruits" term page with the name "Apple"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :vocabulary_machine_name term edit page with the name :term_name</code></summary>
+
+<br/>
+Visit specified vocabulary term edit page
+<br/><br/>
+
+```gherkin
+When I visit the "fruits" term edit page with the name "Apple"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the :vocabulary_machine_name term delete page with the name :term_name</code></summary>
+
+<br/>
+Visit specified vocabulary term delete page
+<br/><br/>
+
+```gherkin
+When I visit the "tags" term delete page with the name "[TEST] Remove"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the vocabulary :machine_name with the name :name should exist</code></summary>
+
+<br/>
+Assert that a vocabulary with a specific name exists
+<br/><br/>
+
+```gherkin
+Then the vocabulary "topics" with the name "Topics" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the vocabulary :machine_name should not exist</code></summary>
+
+<br/>
+Assert that a vocabulary with a specific name does not exist
+<br/><br/>
+
+```gherkin
+Then the vocabulary "topics" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the taxonomy term :term_name from the vocabulary :vocabulary_machine_name should exist</code></summary>
+
+<br/>
+Assert that a taxonomy term exist by name
+<br/><br/>
+
+```gherkin
+Then the taxonomy term "Apple" from the vocabulary "Fruits" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the taxonomy term :term_name from the vocabulary :vocabulary_machine_name should not exist</code></summary>
+
+<br/>
+Assert that a taxonomy term does not exist by name
+<br/><br/>
+
+```gherkin
+Then the taxonomy term "Apple" from the vocabulary "Fruits" should not exist
+
+```
+
+</details>
+
+## Drupal\TestmodeTrait
+
+[Source](src/Drupal/TestmodeTrait.php), [Example](tests/behat/features/drupal_testmode.feature)
+
+>  Configure Drupal Testmode module for controlled testing scenarios.
+>  <br/><br/>
+>  Skip processing with tags: `@behat-steps-skip:testmodeBeforeScenario` and
+>  `@behat-steps-skip:testmodeAfterScenario`.
+>  <br/><br/>
+>  Special tags:
+>  - `@testmode` - enable for scenario
+
+
+## Drupal\TimeTrait
+
+[Source](src/Drupal/TimeTrait.php), [Example](tests/behat/features/drupal_time.feature)
+
+>  Control system time in tests using Drupal state overrides.
+>  <br/><br/>
+>  IMPORTANT: This trait requires your application to use a mockable time
+>  service that checks Drupal state for time overrides.
+>  <br/><br/>
+>  Example implementation:
+>  - Time service: https://github.com/drevops/behat-steps/blob/main/tests/behat/fixtures_drupal/d11/web/modules/custom/mysite_core/src/Time/Time.php
+>  - Time interface: https://github.com/drevops/behat-steps/blob/main/tests/behat/fixtures_drupal/d11/web/modules/custom/mysite_core/src/Time/TimeInterface.php
+>  - Service registration: https://github.com/drevops/behat-steps/blob/main/tests/behat/fixtures_drupal/d11/web/modules/custom/mysite_core/mysite_core.services.yml
+
+
+<details>
+  <summary><code>@When I set system time to :value</code></summary>
+
+<br/>
+Sets the system time for testing
+<br/><br/>
+
+```gherkin
+When I set system time to "1737849900"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I reset system time</code></summary>
+
+<br/>
+Resets the system time to real time
+<br/><br/>
+
+```gherkin
+When I reset system time
+
+```
+
+</details>
+
+## Drupal\UserTrait
+
+[Source](src/Drupal/UserTrait.php), [Example](tests/behat/features/drupal_user.feature)
+
+>  Manage Drupal users with role and permission assignments.
+>  - Create user accounts
+>  - Create user roles
+>  - Visit user profile pages for editing and deletion.
+>  - Assert user roles.
+>  - Assert user account status (active/inactive).
+
+
+<details>
+  <summary><code>@Given the following users do not exist:</code></summary>
+
+<br/>
+Remove users specified in a table
+<br/><br/>
+
+```gherkin
+Given the following users do not exist:
+  | name |
+  | John |
+  | Jane |
+ Given the following users do not exist:
+   | mail             |
+   | john@example.com |
+   | jane@example.com |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following users with fields:</code></summary>
+
+<br/>
+Create users with vertical field format
+<br/><br/>
+
+```gherkin
+Given the following users with fields:
+  | name  | [TEST] user1         | [TEST] user2         |
+  | mail  | user1@example.com    | user2@example.com    |
+  | roles | editor               | author               |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the password for the user :name is :password</code></summary>
+
+<br/>
+Set a password for a user
+<br/><br/>
+
+```gherkin
+Given the password for the user "John" is "password"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the last access time for the user :name is :datetime</code></summary>
+
+<br/>
+Set last access time for a user
+<br/><br/>
+
+```gherkin
+Given the last access time for the user "John" is "Friday, 22 November 2024 13:46:14"
+Given the last access time for the user "John" is "1732319174"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the last login time for the user :name is :datetime</code></summary>
+
+<br/>
+Set last login time for a user
+<br/><br/>
+
+```gherkin
+Given the last login time for the user "John" is "Friday, 22 November 2024 13:46:14"
+Given the last login time for the user "John" is "1732319174"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the role :role_name with the permissions :permissions</code></summary>
+
+<br/>
+Create a single role with specified permissions
+<br/><br/>
+
+```gherkin
+Given the role "Content Manager" with the permissions "access content, create article content, edit any article content"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given the following roles:</code></summary>
+
+<br/>
+Create multiple roles from the specified table
+<br/><br/>
+
+```gherkin
+Given the following roles:
+  | name              | permissions                              |
+  | Content Editor    | access content, create article content   |
+  | Content Approver  | access content, edit any article content |
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit :name user profile page</code></summary>
+
+<br/>
+Visit the profile page of the specified user
+<br/><br/>
+
+```gherkin
+When I visit "John" user profile page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit my own user profile page</code></summary>
+
+<br/>
+Visit the profile page of the current user
+<br/><br/>
+
+```gherkin
+When I visit my own user profile page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit :name user profile edit page</code></summary>
+
+<br/>
+Visit the profile edit page of the specified user
+<br/><br/>
+
+```gherkin
+When I visit "John" user profile edit page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit my own user profile edit page</code></summary>
+
+<br/>
+Visit the profile edit page of the current user
+<br/><br/>
+
+```gherkin
+When I visit my own user profile edit page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit :name user profile delete page</code></summary>
+
+<br/>
+Visit the profile delete page of the specified user
+<br/><br/>
+
+```gherkin
+When I visit "John" user profile delete page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit my own user profile delete page</code></summary>
+
+<br/>
+Visit the profile delete page of the current user
+<br/><br/>
+
+```gherkin
+When I visit my own user profile delete page
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit the password reset link for :name</code></summary>
+
+<br/>
+Visit the password reset link for a user
+<br/><br/>
+
+```gherkin
+When I visit the password reset link for "admin"
+When I visit the password reset link for "test_user"
+
+```
+
+</details>
+
+<details>
+  <summary><code>@When I visit my own password reset link</code></summary>
+
+<br/>
+Visit the password reset link for the currently logged-in user
+<br/><br/>
+
+```gherkin
+When I visit my own password reset link
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user :name should have the role(s) :roles assigned</code></summary>
+
+<br/>
+Assert that a user has roles assigned
+<br/><br/>
+
+```gherkin
+Then the user "John" should have the roles "administrator, editor" assigned
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user :name should not have the role(s) :roles assigned</code></summary>
+
+<br/>
+Assert that a user does not have roles assigned
+<br/><br/>
+
+```gherkin
+Then the user "John" should not have the roles "administrator, editor" assigned
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user with the email :mail should exist</code></summary>
+
+<br/>
+Assert that a user with an email address exists
+<br/><br/>
+
+```gherkin
+Then the user with the email "alice@example.com" should exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user with the email :mail should not exist</code></summary>
+
+<br/>
+Assert that a user with an email address does not exist
+<br/><br/>
+
+```gherkin
+Then the user with the email "alice@example.com" should not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user :name should be blocked</code></summary>
+
+<br/>
+Assert that a user is blocked
+<br/><br/>
+
+```gherkin
+Then the user "John" should be blocked
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Then the user :name should not be blocked</code></summary>
+
+<br/>
+Assert that a user is not blocked
+<br/><br/>
+
+```gherkin
+Then the user "John" should not be blocked
+
+```
+
+</details>
+
+## Drupal\WatchdogTrait
+
+[Source](src/Drupal/WatchdogTrait.php), [Example](tests/behat/features/drupal_watchdog.feature)
+
+>  Assert Drupal does not trigger PHP errors during scenarios using Watchdog.
+>  - Check for Watchdog messages after scenario completion.
+>  - Optionally check only for specific message types.
+>  - Optionally skip error checking for specific scenarios.
+>  
+>  Skip processing with tags: `@behat-steps-skip:watchdogSetScenario` or
+>  `@behat-steps-skip:watchdogAfterStep`
+>  <br/><br/>
+>  Special tags:
+>  - `@watchdog:{type}` - limit watchdog messages to specific types.
+>  - `@error` - add to scenarios that are expected to trigger an error.
+
+
+## Drupal\WebformTrait
+
+[Source](src/Drupal/WebformTrait.php), [Example](tests/behat/features/drupal_webform.feature)
+
+>  Manage Drupal webforms.
+>  - Delete webforms matching a given title for test isolation.
+>  - Clone webform templates into new webforms for scenario setup.
+>  - Cloned webforms are automatically removed at the end of the scenario.
+>  
+>  Requires `drupal/webform` module.
+
+
+<details>
+  <summary><code>@Given the webform :title does not exist</code></summary>
+
+<br/>
+Remove all webforms with a title containing the given string
+<br/><br/>
+
+```gherkin
+Given the webform "Test form" does not exist
+
+```
+
+</details>
+
+<details>
+  <summary><code>@Given a webform :title from template :template</code></summary>
+
+<br/>
+Clone a webform template into a new webform with the given title
+<br/><br/>
+
+```gherkin
+Given a webform "My contact form" from template "Contact"
+
+```
+
+</details>
+
+
+
+
+[//]: # (END)

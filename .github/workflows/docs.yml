@@ -1,0 +1,48 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check relative links in markdown docs
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          failures = []
+          checked = 0
+          for root, _dirs, files in os.walk('.'):
+              if '.git' in root.split(os.sep):
+                  continue
+              for name in files:
+                  if not name.endswith('.md'):
+                      continue
+                  path = os.path.join(root, name)
+                  text = open(path, encoding='utf-8').read()
+                  for m in re.finditer(r'\]\((?!https?://|#|mailto:)([^)#\s]+)', text):
+                      checked += 1
+                      target = m.group(1)
+                      # STATUS.md documents that src/ and tests/ do not exist
+                      # yet; STEPS.md links to them as the implementation
+                      # target. Remove this exclusion when the code lands -
+                      # those links then must resolve.
+                      if target.startswith(('src/', 'tests/')):
+                          continue
+                      if not os.path.exists(os.path.join(root, target)):
+                          failures.append(f'{path}: broken link to {target}')
+
+          print(f'Checked {checked} relative links.')
+          if failures:
+              print('\n'.join(failures))
+              sys.exit(1)
+          PY

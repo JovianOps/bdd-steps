@@ -2,6 +2,8 @@
 
 Welcome to **`jovian/bdd-steps`** (`jovian/bdd-steps`). We welcome contributions from the global developer community that align with our core mission of high-velocity, zero-trait architectural performance.
 
+> **Vibecoders welcome.** Human + AI-agent pairs are first-class contributors here. Start with [`AGENTS.md`](./AGENTS.md) (5-minute setup: one server, one suite, all green), pick an open issue labeled `good first issue`, and follow the rules there. PRs that keep the suite green and update `README.md`/`STATUS.md` counts get reviewed fast.
+
 Please review this document before submitting issues, feature requests, or pull requests.
 
 ---

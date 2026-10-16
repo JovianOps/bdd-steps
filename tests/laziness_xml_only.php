@@ -14,10 +14,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Behat\Gherkin\Node\PyStringNode;
 use Jovian\BddSteps\Context\JovianContext;
 
 $context = new JovianContext();
-$context->responseContentIs(new Behat\Gherkin\Node\PyStringNode(['<?xml version="1.0"?><r><i>x</i></r>'], 0));
+$context->responseContentIs(new PyStringNode(['<?xml version="1.0"?><r><i>x</i></r>'], 0));
 $context->responseShouldBeInXmlFormat();
 $context->xmlElementShouldExist('//i');
 

@@ -20,6 +20,12 @@
     {
       "matchUpdateTypes": ["major"],
       "groupName": "major"
+    },
+    {
+      "description": "Exclude GitHub Actions: Dependabot owns github-actions.",
+      "matchDatasources": ["github-actions"],
+      "enabled": false
     }
-  ]
+  ],
+  "ignoreUnstable": true
 }

@@ -1,0 +1,9 @@
+default:
+  suites:
+    default:
+      contexts:
+        - Jovian\BddSteps\Context\JovianContext
+      paths:
+        - '%paths.base%/tests/features'
+  formatters:
+    pretty: ~

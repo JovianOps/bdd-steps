@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns:bk="http://example.com/book">
+  <book id="123">
+    <title>The Great Adventure</title>
+    <author>John Doe</author>
+    <description>A sample book with detailed notes.</description>
+    <bk:review>Editors choice</bk:review>
+  </book>
+  <book id="456">
+    <title>Quiet Rivers</title>
+    <author>Jane Roe</author>
+    <description>A calm story.</description>
+  </book>
+</library>

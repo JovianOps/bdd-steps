@@ -133,6 +133,67 @@ $checkFails('A path without the root fails.', static fn(): array => JsonPath::ma
 $checkFails('An unsupported segment fails.', static fn(): array => JsonPath::matches($json, '$.user[?(@.name)]'));
 
 // -----------------------------------------------------------------------------
+// HTTP history, auth and headers.
+// -----------------------------------------------------------------------------
+
+$nav = new HttpDriver($fixtures);
+$nav->get('/data.json');
+$nav->get('/index.html');
+$check('History records every request.', count($nav->history()) === 2);
+$nav->back();
+$check('Back returns to the previous URL.', str_ends_with($nav->url(), '/data.json'));
+$check('Back restores the history depth.', count($nav->history()) === 1);
+
+$lonely = new HttpDriver($fixtures);
+$lonely->get('/data.json');
+$checkFails('Back with no history fails.', static fn(): mixed => $lonely->back());
+
+$authed = new HttpDriver($fixtures);
+$authed->setBasicAuth('user', 'pass');
+$authed->get('/data.json');
+$check('Basic auth does not break a request.', str_contains($authed->body(), 'Ada'));
+$authed->setBasicAuth(NULL);
+
+$staged = new HttpDriver($fixtures);
+$staged->setExtraHeaders(['X-Custom' => 'hello']);
+$staged->request('GET', '/data.json', ['X-Other' => 'world']);
+$check('Extra headers do not break a request.', str_contains($staged->body(), 'Ada'));
+
+// -----------------------------------------------------------------------------
+// XML driver contracts.
+// -----------------------------------------------------------------------------
+
+$xml = new \Jovian\BddSteps\Driver\XmlDriver();
+$xml->load('<?xml version="1.0"?><library><book id="123"><title>T</title></book><book id="456"><title>U</title></book></library>');
+$check('Well-formed XML validates.', $xml->isValid());
+$check('An existing element is found.', $xml->exists('//book'));
+$check('A count reflects the matched nodes.', $xml->count('//book') === 2);
+$check('A value reads the first match.', $xml->value('//title') === 'T');
+$check('An attribute reads.', $xml->attribute('/library/book[1]', 'id') === '123');
+$check('An attribute presence reports.', $xml->hasAttribute('//book', '@id') && !$xml->hasAttribute('//book', 'missing'));
+$checkFails('A missing value fails.', static fn(): string => $xml->value('//nope'));
+$checkFails('A missing attribute fails.', static fn(): string => $xml->attribute('//book', 'missing'));
+
+$bad_xml = new \Jovian\BddSteps\Driver\XmlDriver();
+$bad_xml->load('<root><unclosed>');
+$check('Malformed XML reports invalid.', !$bad_xml->isValid());
+
+$ns_xml = new \Jovian\BddSteps\Driver\XmlDriver();
+$ns_xml->load('<?xml version="1.0"?><root xmlns:bk="http://example.com/book"><bk:item>x</bk:item></root>');
+$check('Declared namespaces are listed.', $ns_xml->namespaces() === ['http://example.com/book']);
+
+// -----------------------------------------------------------------------------
+// Table contracts.
+// -----------------------------------------------------------------------------
+
+$tables = new DomDriver();
+$tables->load('<html><body><table class="t"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table></body></html>');
+$table_el = $tables->firstCss('.t');
+$check('Headers read in order.', $tables->tableHeaders($table_el) === ['A', 'B']);
+$check('Rows read as cell texts.', $tables->tableRows($table_el) === [['1', '2']]);
+$checkFails('A missing table fails.', static fn(): \DOMElement => $tables->firstCss('.nope'));
+
+// -----------------------------------------------------------------------------
 // Step-level failure paths.
 // -----------------------------------------------------------------------------
 
@@ -141,6 +202,15 @@ $failing->pageContentIs('<html><body><p>Hello</p></body></html>');
 
 $checkFails('An unmatched text fails the step.', static fn(): mixed => $failing->pageShouldContainText('Goodbye'));
 $checkFails('A wrong element count fails the step.', static fn(): mixed => $failing->pageShouldContainElements('2', '//p'));
+
+$json_failing = new JovianContext();
+$json_failing->responseJsonContent(new \Behat\Gherkin\Node\PyStringNode(['{"a":1}'], 0));
+$checkFails('A missing JSON path fails the step.', static fn(): mixed => $json_failing->jsonPathShouldExist('$.b'));
+$checkFails('A wrong JSON value fails the step.', static fn(): mixed => $json_failing->jsonPathShouldBeEqualTo('$.a', '2'));
+
+$xml_failing = new JovianContext();
+$xml_failing->responseContentIs(new \Behat\Gherkin\Node\PyStringNode(['<?xml version="1.0"?><r><i>x</i></r>'], 0));
+$checkFails('A missing XML element fails the step.', static fn(): mixed => $xml_failing->xmlElementShouldExist('//nope'));
 
 // -----------------------------------------------------------------------------
 // Report.

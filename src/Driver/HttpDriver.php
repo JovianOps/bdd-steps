@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Jovian\BddSteps\Driver;
 
 /**
- * Fetch an HTTP resource and expose its status, headers and body.
+ * Fetch HTTP resources and expose the status, headers and body.
  *
  * Uses the native stream wrapper, so no HTTP client dependency is pulled in.
+ * Only the last response is kept; every requested URL is appended to the
+ * history so scenarios can navigate back.
  */
 final class HttpDriver {
 
@@ -39,6 +41,30 @@ final class HttpDriver {
   private string $url = '';
 
   /**
+   * Requested URLs, oldest first.
+   *
+   * @var list<string>
+   */
+  private array $history = [];
+
+  /**
+   * Extra headers sent with every request until replaced.
+   *
+   * @var array<string, string>
+   */
+  private array $extra_headers = [];
+
+  /**
+   * Basic authentication username, or NULL when disabled.
+   */
+  private ?string $auth_user = NULL;
+
+  /**
+   * Basic authentication password.
+   */
+  private ?string $auth_password = NULL;
+
+  /**
    * Construct the driver.
    *
    * @param string $base_url
@@ -55,20 +81,53 @@ final class HttpDriver {
    *   Absolute URL, or a path relative to the base URL.
    */
   public function get(string $url): void {
+    $this->request('GET', $url);
+  }
+
+  /**
+   * Perform a request with an arbitrary method, headers and body.
+   *
+   * @param string $method
+   *   HTTP method, such as GET, POST, PUT, PATCH or DELETE.
+   * @param string $url
+   *   Absolute URL, or a path relative to the base URL.
+   * @param array<string, string> $headers
+   *   Headers for this request only.
+   * @param string|null $body
+   *   Request body, or NULL for none.
+   */
+  public function request(string $method, string $url, array $headers = [], ?string $body = NULL): void {
     $this->url = $this->resolve($url);
 
-    $context = stream_context_create([
-      'http' => [
-        'method' => 'GET',
-        'ignore_errors' => TRUE,
-        'timeout' => self::TIMEOUT,
-        'follow_location' => 1,
-      ],
-    ]);
+    $lines = [];
+    foreach ([...$this->extra_headers, ...$headers] as $name => $value) {
+      $lines[] = $name . ': ' . $value;
+    }
 
-    $body = @file_get_contents($this->url, FALSE, $context);
+    if ($this->auth_user !== NULL) {
+      $lines[] = 'Authorization: Basic ' . base64_encode($this->auth_user . ':' . ($this->auth_password ?? ''));
+    }
 
-    if ($body === FALSE) {
+    $options = [
+      'method' => strtoupper($method),
+      'ignore_errors' => TRUE,
+      'timeout' => self::TIMEOUT,
+      'follow_location' => 1,
+    ];
+
+    if ($lines !== []) {
+      $options['header'] = $lines;
+    }
+
+    if ($body !== NULL) {
+      $options['content'] = $body;
+    }
+
+    $context = stream_context_create(['http' => $options]);
+
+    $response_body = @file_get_contents($this->url, FALSE, $context);
+
+    if ($response_body === FALSE) {
       throw new \RuntimeException(sprintf('Could not fetch "%s".', $this->url));
     }
 
@@ -77,10 +136,47 @@ final class HttpDriver {
     /** @var list<string>|null $http_response_header */
     $raw_headers = $http_response_header ?? [];
 
-    $this->body = $body;
+    $this->body = $response_body;
     $this->status = NULL;
     $this->headers = [];
     $this->parseResponseHeaders($raw_headers);
+    $this->history[] = $this->url;
+  }
+
+  /**
+   * Re-request the previously requested URL.
+   *
+   * Drops the current entry and repeats the one before it, so scenarios can
+   * assert on the page they came from.
+   */
+  public function back(): void {
+    if (count($this->history) < 2) {
+      throw new \RuntimeException('There is no previous request to go back to.');
+    }
+
+    array_pop($this->history);
+    $previous = array_pop($this->history);
+
+    // Request() appends again, restoring the stack to its earlier state.
+    $this->request('GET', $previous ?? '');
+  }
+
+  /**
+   * Set headers sent with every request until replaced.
+   *
+   * @param array<string, string> $headers
+   *   Headers keyed by name. An empty array clears them.
+   */
+  public function setExtraHeaders(array $headers): void {
+    $this->extra_headers = $headers;
+  }
+
+  /**
+   * Enable or disable HTTP basic authentication.
+   */
+  public function setBasicAuth(?string $user, ?string $password = NULL): void {
+    $this->auth_user = $user;
+    $this->auth_password = $password;
   }
 
   /**
@@ -111,6 +207,15 @@ final class HttpDriver {
    */
   public function url(): string {
     return $this->url;
+  }
+
+  /**
+   * Requested URLs, oldest first.
+   *
+   * @return list<string>
+   */
+  public function history(): array {
+    return $this->history;
   }
 
   /**

@@ -1,8 +1,11 @@
 {
   "user": {
     "name": "Ada",
-    "roles": ["admin", "editor"]
+    "roles": ["admin", "editor"],
+    "email": "ada@example.com"
   },
   "count": 2,
-  "active": true
+  "active": true,
+  "archived": false,
+  "nothing": null
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Jovian\BddSteps\Driver;
 
+use Symfony\Component\CssSelector\CssSelectorConverter;
+
 /**
  * Inspect an HTML document with XPath.
  *
@@ -64,6 +66,16 @@ final class DomDriver {
    *   Number of matched nodes.
    */
   public function count(string $expression): int {
+    return $this->query($expression)->length;
+  }
+
+  /**
+   * Evaluate an XPath expression against the loaded document.
+   *
+   * @param string $expression
+   *   XPath expression.
+   */
+  public function query(string $expression): \DOMNodeList {
     // An invalid expression raises a warning and returns FALSE; the warning is
     // suppressed because the step reports it as an exception instead.
     $nodes = @$this->evaluator()->query($expression);
@@ -72,7 +84,141 @@ final class DomDriver {
       throw new \RuntimeException(sprintf('Invalid XPath expression "%s".', $expression));
     }
 
-    return $nodes->length;
+    return $nodes;
+  }
+
+  /**
+   * Evaluate a CSS selector against the loaded document.
+   *
+   * @param string $selector
+   *   CSS selector.
+   */
+  public function queryCss(string $selector): \DOMNodeList {
+    try {
+      $expression = (new CssSelectorConverter())->toXPath($selector);
+    }
+    catch (\Exception $exception) {
+      throw new \RuntimeException(sprintf('Invalid CSS selector "%s".', $selector), 0, $exception);
+    }
+
+    return $this->query($expression);
+  }
+
+  /**
+   * First element matching a CSS selector.
+   *
+   * @param string $selector
+   *   CSS selector.
+   */
+  public function firstCss(string $selector): \DOMElement {
+    $nodes = $this->queryCss($selector);
+    $node = $nodes->item(0);
+
+    if (!$node instanceof \DOMElement) {
+      throw new \RuntimeException(sprintf('The selector "%s" matches no element on the page.', $selector));
+    }
+
+    return $node;
+  }
+
+  /**
+   * Header labels of a table, in column order.
+   *
+   * Reads `thead th` when present, otherwise the cells of the first row.
+   *
+   * @param \DOMElement $table
+   *   The table element.
+   *
+   * @return list<string>
+   *   Whitespace-normalized header texts.
+   */
+  public function tableHeaders(\DOMElement $table): array {
+    $xpath = new \DOMXPath($table->ownerDocument ?? new \DOMDocument());
+
+    $cells = $xpath->query('.//thead//th', $table);
+
+    if ($cells === FALSE || $cells->length === 0) {
+      $cells = $xpath->query('.//tr[1]/*[self::th or self::td]', $table);
+    }
+
+    $headers = [];
+
+    foreach ($cells ?: [] as $cell) {
+      $headers[] = $this->normalize($cell->textContent ?? '');
+    }
+
+    return array_values($headers);
+  }
+
+  /**
+   * Body rows of a table as cell texts.
+   *
+   * Reads `tbody tr` when present, otherwise every row outside `thead`. A
+   * leading header row built from `th` cells is skipped.
+   *
+   * @param \DOMElement $table
+   *   The table element.
+   *
+   * @return list<list<string>>
+   *   One list of whitespace-normalized cell texts per row.
+   */
+  public function tableRows(\DOMElement $table): array {
+    $xpath = new \DOMXPath($table->ownerDocument ?? new \DOMDocument());
+
+    $rows = $xpath->query('.//tbody/tr', $table);
+
+    if ($rows === FALSE || $rows->length === 0) {
+      $rows = $xpath->query('.//tr[not(ancestor::thead)]', $table);
+    }
+
+    $result = [];
+    $first = TRUE;
+
+    foreach ($rows ?: [] as $row) {
+      if (!$row instanceof \DOMElement) {
+        continue;
+      }
+
+      $cells = $xpath->query('./*[self::th or self::td]', $row);
+      $texts = [];
+
+      foreach ($cells ?: [] as $cell) {
+        $texts[] = $this->normalize($cell->textContent ?? '');
+      }
+
+      // Skip a leading row made of header cells; headers() reports those.
+      if ($first && $texts !== [] && $this->rowIsHeader($xpath, $row)) {
+        $first = FALSE;
+        continue;
+      }
+
+      $first = FALSE;
+
+      if ($texts !== []) {
+        $result[] = array_values($texts);
+      }
+    }
+
+    return $result;
+  }
+
+  /**
+   * Whether every cell of a row is a header cell.
+   */
+  private function rowIsHeader(\DOMXPath $xpath, \DOMElement $row): bool {
+    $cells = $xpath->query('./*', $row);
+
+    if ($cells === FALSE || $cells->length === 0) {
+      return FALSE;
+    }
+
+    foreach ($cells as $cell) {
+      if (!$cell instanceof \DOMElement || strtolower($cell->tagName) !== 'th') {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
   }
 
   /**

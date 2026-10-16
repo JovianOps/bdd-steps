@@ -1,0 +1,8 @@
+{
+  "user": {
+    "name": "Ada",
+    "roles": ["admin", "editor"]
+  },
+  "count": 2,
+  "active": true
+}

@@ -2,12 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "timezone": "Asia/Jakarta",
-  "schedule": ["0 6,18 * * *"],
+  "schedule": ["* 6,18 * * *"],
   "labels": ["dependencies"],
   "dependencyDashboard": true,
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["0 6 * * 1"]
+    "schedule": ["* 6 * * 1"]
   },
   "packageRules": [
     {

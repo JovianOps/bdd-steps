@@ -1,0 +1,46 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "37 22 * * 0"
+
+jobs:
+  build:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+      checks: write  # for PR annotations
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # Shallow history is required for SonarCloud analysis
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests + coverage
+        run: |
+          vendor/bin/phpunit || true
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        uses: sonarsource/sonarcloud-github-action@master

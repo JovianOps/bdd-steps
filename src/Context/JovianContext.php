@@ -687,6 +687,89 @@ final class JovianContext implements Context {
   }
 
   /**
+   * Stage a cookie to send with subsequent requests.
+   *
+   * @param string $name
+   *   Cookie name.
+   * @param string $value
+   *   Cookie value.
+   */
+  #[Given('the cookie :name with value :value')]
+  public function stageCookie(string $name, string $value): void {
+    $this->http()->setExtraCookies([...$this->http()->getExtraCookies(), $name => $value]);
+  }
+
+  /**
+   * Assert a cookie set by the last response exists.
+   *
+   * @param string $name
+   *   Cookie name.
+   */
+  #[Then('the response should have a cookie named :name')]
+  public function responseShouldHaveCookie(string $name): void {
+    $cookies = $this->http()->cookies();
+
+    if (!array_key_exists($name, $cookies)) {
+      throw new \RuntimeException(sprintf('The response from "%s" has no cookie named "%s".', $this->contentLabel(), $name));
+    }
+  }
+
+  /**
+   * Assert a cookie set by the last response does not exist.
+   *
+   * @param string $name
+   *   Cookie name.
+   */
+  #[Then('the response should not have a cookie named :name')]
+  public function responseShouldNotHaveCookie(string $name): void {
+    $cookies = $this->http()->cookies();
+
+    if (array_key_exists($name, $cookies)) {
+      throw new \RuntimeException(sprintf('The response from "%s" has a cookie named "%s", expected none.', $this->contentLabel(), $name));
+    }
+  }
+
+  /**
+   * Assert a cookie set by the last response has the expected value.
+   *
+   * @param string $name
+   *   Cookie name.
+   * @param string $value
+   *   Expected cookie value.
+   */
+  #[Then('the cookie :name should have the value :value')]
+  public function cookieShouldHaveValue(string $name, string $value): void {
+    $cookies = $this->http()->cookies();
+
+    if (!array_key_exists($name, $cookies)) {
+      throw new \RuntimeException(sprintf('The response from "%s" has no cookie named "%s".', $this->contentLabel(), $name));
+    }
+
+    if ($cookies[$name]['value'] !== $value) {
+      throw new \RuntimeException(sprintf('The cookie "%s" has value "%s", expected "%s".', $name, $cookies[$name]['value'], $value));
+    }
+  }
+
+  /**
+   * Assert the response time of the last request is below a threshold.
+   *
+   * @param string $seconds
+   *   Maximum acceptable response time in seconds.
+   */
+  #[Then('the response time should be less than :seconds second(s)')]
+  public function responseTimeShouldBeLessThan(string $seconds): void {
+    $actual = $this->http()->responseTime();
+
+    if ($actual === NULL) {
+      throw new \RuntimeException(sprintf('No response time was measured for the request to "%s".', $this->http()->url()));
+    }
+
+    if ($actual >= (float) $seconds) {
+      throw new \RuntimeException(sprintf('The response took %.4fs for "%s", expected under %ss.', $actual, $this->http()->url(), $seconds));
+    }
+  }
+
+  /**
    * Query parameters of the last requested URL.
    *
    * @return array<string, mixed>

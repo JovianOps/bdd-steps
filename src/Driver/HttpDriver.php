@@ -48,11 +48,33 @@ final class HttpDriver {
   private array $history = [];
 
   /**
+   * Cookies parsed from the last response's Set-Cookie headers.
+   *
+   * Keyed by cookie name. Each value carries value, domain, path, expires,
+   * secure and httponly flags.
+   *
+   * @var array<string, array{value: string, domain: string, path: string, expires: ?int, secure: bool, httponly: bool}>
+   */
+  private array $cookies = [];
+
+  /**
+   * Response time in seconds for the last request, or NULL on failure.
+   */
+  private ?float $response_time = NULL;
+
+  /**
    * Extra headers sent with every request until replaced.
    *
    * @var array<string, string>
    */
   private array $extra_headers = [];
+
+  /**
+   * Extra cookies sent with every request until replaced.
+   *
+   * @var array<string, string>
+   */
+  private array $extra_cookies = [];
 
   /**
    * Basic authentication username, or NULL when disabled.
@@ -104,8 +126,18 @@ final class HttpDriver {
       $lines[] = $name . ': ' . $value;
     }
 
+    if ($this->extra_cookies !== []) {
+      $cookie_pairs = [];
+
+      foreach ($this->extra_cookies as $name => $value) {
+        $cookie_pairs[] = $name . '=' . $value;
+      }
+
+      $lines[] = 'Cookie: ' . implode('; ', $cookie_pairs);
+    }
+
     if ($this->auth_user !== NULL) {
-      $lines[] = 'Authorization: Basic ' . base64_encode($this->auth_user . ':' . ($this->auth_password ?? ''));
+      $lines[] = 'Authorization: *** ' . base64_encode($this->auth_user . ':' . ($this->auth_password ?? ''));
     }
 
     $options = [
@@ -123,9 +155,10 @@ final class HttpDriver {
       $options['content'] = $body;
     }
 
+    $start = hrtime(TRUE);
     $context = stream_context_create(['http' => $options]);
-
     $response_body = @file_get_contents($this->url, FALSE, $context);
+    $elapsed = (hrtime(TRUE) - $start) / 1e9;
 
     if ($response_body === FALSE) {
       throw new \RuntimeException(sprintf('Could not fetch "%s".', $this->url));
@@ -139,6 +172,8 @@ final class HttpDriver {
     $this->body = $response_body;
     $this->status = NULL;
     $this->headers = [];
+    $this->cookies = [];
+    $this->response_time = $elapsed;
     $this->parseResponseHeaders($raw_headers);
     $this->history[] = $this->url;
   }
@@ -169,6 +204,25 @@ final class HttpDriver {
    */
   public function setExtraHeaders(array $headers): void {
     $this->extra_headers = $headers;
+  }
+
+  /**
+   * Set cookies sent with every request until replaced.
+   *
+   * @param array<string, string> $cookies
+   *   Cookies keyed by name. An empty array clears them.
+   */
+  public function setExtraCookies(array $cookies): void {
+    $this->extra_cookies = $cookies;
+  }
+
+  /**
+   * Cookies sent with every request.
+   *
+   * @return array<string, string>
+   */
+  public function getExtraCookies(): array {
+    return $this->extra_cookies;
   }
 
   /**
@@ -203,6 +257,15 @@ final class HttpDriver {
   }
 
   /**
+   * Cookies parsed from the last response, keyed by name.
+   *
+   * @return array<string, array{value: string, domain: string, path: string, expires: ?int, secure: bool, httponly: bool}>
+   */
+  public function cookies(): array {
+    return $this->cookies;
+  }
+
+  /**
    * URL of the last request.
    */
   public function url(): string {
@@ -216,6 +279,13 @@ final class HttpDriver {
    */
   public function history(): array {
     return $this->history;
+  }
+
+  /**
+   * Response time in seconds for the last request, or NULL on failure.
+   */
+  public function responseTime(): ?float {
+    return $this->response_time;
   }
 
   /**
@@ -235,6 +305,10 @@ final class HttpDriver {
    * Every redirect hop appends its own header block, so the last block - the
    * status line and headers of the final response - takes precedence.
    *
+   * Set-Cookie headers are parsed into the cookies array. When multiple
+   * headers share the name, all are parsed (PHP folds them into commas when
+   * there is more than one).
+   *
    * @param list<string> $lines
    *   Raw response header lines.
    */
@@ -244,17 +318,87 @@ final class HttpDriver {
     foreach ($lines as $line) {
       if (preg_match('#^HTTP/\S+\s+(\d{3})#', $line, $matches) === 1) {
         $statuses[] = (int) $matches[1];
+
         continue;
       }
 
       if (preg_match('#^([^:]+):\s*(.*)$#', $line, $matches) === 1) {
-        $this->headers[strtolower(trim($matches[1]))] = trim($matches[2]);
+        $name = strtolower(trim($matches[1]));
+        $value = trim($matches[2]);
+        $this->headers[$name] = $value;
+
+        if ($name === 'set-cookie') {
+          foreach ($this->parseSetCookie($value) as $cookie) {
+            $this->cookies[$cookie['name']] = $cookie;
+          }
+        }
       }
     }
 
     if ($statuses !== []) {
       $this->status = (int) end($statuses);
     }
+  }
+
+  /**
+   * Split a Set-Cookie header value into cookie definitions.
+   *
+   * In practice PHP's stream wrapper delivers each Set-Cookie header as a
+   * separate line, so the value is a single cookie pair plus attributes.
+   *
+   * @return list<array{name: string, value: string, domain: string, path: string, expires: ?int, secure: bool, httponly: bool}>
+   */
+  private function parseSetCookie(string $header): array {
+    $parts = array_map('trim', explode(';', $header));
+
+    if ($parts === []) {
+      return [];
+    }
+
+    $first = array_shift($parts);
+    $eq = strpos($first, '=');
+
+    if ($eq === FALSE) {
+      $cookie = [
+        'name' => $first,
+        'value' => '',
+        'domain' => '',
+        'path' => '/',
+        'expires' => NULL,
+        'secure' => FALSE,
+        'httponly' => FALSE,
+      ];
+    } else {
+      $cookie = [
+        'name' => substr($first, 0, $eq),
+        'value' => substr($first, $eq + 1),
+        'domain' => '',
+        'path' => '/',
+        'expires' => NULL,
+        'secure' => FALSE,
+        'httponly' => FALSE,
+      ];
+    }
+
+    foreach ($parts as $part) {
+      $lower = strtolower($part);
+
+      if (str_starts_with($lower, 'expires=')) {
+        $cookie['expires'] = strtotime(substr($part, 8)) ?: NULL;
+      } elseif (str_starts_with($lower, 'max-age=')) {
+        $cookie['expires'] = time() + (int) substr($part, 8);
+      } elseif ($lower === 'secure') {
+        $cookie['secure'] = TRUE;
+      } elseif ($lower === 'httponly') {
+        $cookie['httponly'] = TRUE;
+      } elseif (str_starts_with($lower, 'domain=')) {
+        $cookie['domain'] = substr($part, 7);
+      } elseif (str_starts_with($lower, 'path=')) {
+        $cookie['path'] = substr($part, 5);
+      }
+    }
+
+    return [$cookie];
   }
 
 }

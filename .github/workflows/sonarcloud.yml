@@ -28,7 +28,7 @@ jobs:
           php-version: "8.3"
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('composer.json') }}
